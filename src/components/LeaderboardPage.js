@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
 
 // Fake data for leaderboard entries (unchanged)
 const fakeLeaderboardData = [
@@ -96,9 +96,9 @@ const LeaderboardPage = () => {
   const renderPicksTable = (picks, userId) => {
     const weekGames = fakeGames[selectedWeek] || [];
     return (
-      <div className="px-4 py-3 bg-gray-100">
+      <div className="px-4 py-3 bg-gray-50 rounded-b-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-100">
             <tr>
               <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Game
@@ -117,16 +117,20 @@ const LeaderboardPage = () => {
                   : game.away
                 : null;
               return (
-                <tr key={game.id}>
+                <tr key={game.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
                     {game.away.abbreviation} @ {game.home.abbreviation}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
-                    {pickedTeam
-                      ? `${pickedTeam.abbreviation} (${
-                          pickedTeam.spread > 0 ? "+" : ""
-                        }${pickedTeam.spread})`
-                      : "No pick"}
+                    {pickedTeam ? (
+                      <span>
+                        {pickedTeam.abbreviation} (
+                        {pickedTeam.spread > 0 ? "+" : ""}
+                        {pickedTeam.spread})
+                      </span>
+                    ) : (
+                      "No pick"
+                    )}
                   </td>
                 </tr>
               );
@@ -139,8 +143,8 @@ const LeaderboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -150,10 +154,23 @@ const LeaderboardPage = () => {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900 text-center">
-        Leaderboard
-      </h1>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="bg-blue-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Trophy className="w-8 h-8 mr-4" />
+            <div>
+              <h1 className="text-2xl font-bold">Leaderboard</h1>
+              <p className="text-blue-200">See how you stack up</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-lg text-blue-200">Players</p>
+            <p className="text-3xl font-bold">{sortedLeaderboard.length}</p>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-6">
         <label
           htmlFor="week-select"
@@ -161,98 +178,87 @@ const LeaderboardPage = () => {
         >
           Select Week:
         </label>
-        <div className="relative">
-          <select
-            id="week-select"
-            value={selectedWeek}
-            onChange={handleWeekChange}
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-2 px-3 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-          >
-            {[1, 2, 3].map((week) => (
-              <option key={week} value={week}>
-                Week {week}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <ChevronDown size={20} />
-          </div>
-        </div>
+        <select
+          id="week-select"
+          value={selectedWeek}
+          onChange={handleWeekChange}
+          className="block w-full bg-white border border-gray-300 text-gray-700 py-2 px-3 pr-8 rounded-md leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {[1, 2, 3].map((week) => (
+            <option key={week} value={week}>
+              Week {week}
+            </option>
+          ))}
+        </select>
       </div>
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Rank
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Name
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Total Correct
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Week {selectedWeek} Correct
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              ></th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {sortedLeaderboard.map((entry, index) => (
-              <React.Fragment key={entry.id}>
-                <tr
-                  className={`${
-                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  } cursor-pointer hover:bg-gray-100`}
-                  onClick={() => toggleRowExpansion(entry.id)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                    {entry.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-bold">
-                    {calculateTotalPicks(entry.correctPicks)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                    {entry.correctPicks[selectedWeek]}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                    {expandedRows[entry.id] ? (
-                      <ChevronDown size={20} />
-                    ) : (
-                      <ChevronRight size={20} />
-                    )}
-                  </td>
-                </tr>
-                {expandedRows[entry.id] && (
-                  <tr>
-                    <td colSpan="5">
-                      {renderPicksTable(entry.picks[selectedWeek], entry.id)}
+
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Week {selectedWeek}
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedLeaderboard.map((entry, index) => (
+                <React.Fragment key={entry.id}>
+                  <tr
+                    onClick={() => toggleRowExpansion(entry.id)}
+                    className={`${
+                      index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    } hover:bg-gray-100 transition-colors duration-150 ease-in-out cursor-pointer`}
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {entry.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
+                      {calculateTotalPicks(entry.correctPicks)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {entry.correctPicks[selectedWeek]}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {expandedRows[entry.id] ? (
+                        <ChevronDown
+                          size={20}
+                          className="text-blue-600 inline"
+                        />
+                      ) : (
+                        <ChevronRight
+                          size={20}
+                          className="text-blue-600 inline"
+                        />
+                      )}
                     </td>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+                  {expandedRows[entry.id] && (
+                    <tr>
+                      <td colSpan="5" className="px-4 py-3">
+                        {renderPicksTable(entry.picks[selectedWeek], entry.id)}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

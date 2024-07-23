@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
+import { Calendar, ChevronRight } from "lucide-react";
 
 const teams = [
   {
@@ -21,6 +22,14 @@ const HomePage = () => {
     message: "",
     type: "success",
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading data
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
 
   const handlePickClick = (gameIndex, teamType) => {
     setSelectedPicks((prevPicks) => ({
@@ -49,11 +58,33 @@ const HomePage = () => {
     setIsModalOpen(true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-        This Week's Games
-      </h1>
+      <div className="bg-blue-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Calendar className="w-8 h-8 mr-4" />
+            <div>
+              <h1 className="text-2xl font-bold">Week 3</h1>
+              <p className="text-blue-200">
+                Make your picks for this week's games
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-lg text-blue-200">Games Remaining</p>
+            <p className="text-3xl font-bold">{teams.length}</p>
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -63,7 +94,7 @@ const HomePage = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden"
             >
               <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center">
                   Game {index + 1}
                 </h2>
               </div>
@@ -87,14 +118,17 @@ const HomePage = () => {
                       </div>
                       <span className="font-medium">{team.name}</span>
                     </div>
-                    <span
-                      className={`font-semibold ${
-                        team.spread > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {team.spread > 0 ? "+" : ""}
-                      {team.spread}
-                    </span>
+                    <div className="flex items-center">
+                      <span
+                        className={`font-semibold ${
+                          team.spread > 0 ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {team.spread > 0 ? "+" : ""}
+                        {team.spread}
+                      </span>
+                      <ChevronRight className="w-5 h-5 ml-2 text-gray-400" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -104,9 +138,10 @@ const HomePage = () => {
         <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
           >
             Submit Picks
+            <ChevronRight className="w-5 h-5 ml-2" />
           </button>
         </div>
       </form>
