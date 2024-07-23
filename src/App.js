@@ -11,6 +11,7 @@ import HomePage from "./components/HomePage";
 import Header from "./components/Header";
 import LeaderboardPage from "./components/LeaderboardPage";
 import ProfilePage from "./components/ProfilePage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,6 +42,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="App min-h-screen flex flex-col bg-gray-100">
         {!isLoggedIn ? (
           <LoginComponent onLogin={handleLogin} />
