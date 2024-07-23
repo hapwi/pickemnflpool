@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Search, User } from "lucide-react";
+import { Home, Trophy, User } from "lucide-react";
 
 const BottomNav = () => {
   const navigate = useNavigate();
@@ -19,13 +19,15 @@ const BottomNav = () => {
           <span className="text-xs mt-1">Home</span>
         </button>
         <button
-          onClick={() => navigate("/search")}
+          onClick={() => navigate("/leaderboard")}
           className={`flex flex-col items-center w-full ${
-            location.pathname === "/search" ? "text-blue-500" : "text-gray-400"
+            location.pathname === "/leaderboard"
+              ? "text-blue-500"
+              : "text-gray-400"
           }`}
         >
-          <Search size={24} />
-          <span className="text-xs mt-1">Search</span>
+          <Trophy size={24} />
+          <span className="text-xs mt-1">Leaderboard</span>
         </button>
         <button
           onClick={() => navigate("/profile")}

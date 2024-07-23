@@ -9,6 +9,7 @@ import LoginComponent from "./components/LoginComponent";
 import BottomNav from "./components/BottomNav";
 import HomePage from "./components/HomePage";
 import Header from "./components/Header";
+import LeaderboardPage from "./components/LeaderboardPage";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,16 +40,19 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
+      <div className="App min-h-screen flex flex-col">
         {!isLoggedIn ? (
           <LoginComponent onLogin={handleLogin} />
         ) : (
           <>
             <Header userName={userName} onLogout={handleLogout} />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <main className="flex-grow pt-24 pb-16">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
             <BottomNav />
           </>
         )}

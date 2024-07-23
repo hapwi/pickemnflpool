@@ -28,7 +28,7 @@ const Header = ({ userName, onLogout }) => {
   };
 
   return (
-    <header className="bg-white shadow">
+    <header className="fixed top-0 left-0 right-0 bg-white shadow z-10">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           Dashboard
