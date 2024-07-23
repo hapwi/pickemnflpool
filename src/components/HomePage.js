@@ -1,161 +1,126 @@
-import React, { useState, useEffect } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { User, Award, Percent } from "lucide-react";
+import React, { useState } from "react";
+import Modal from "./Modal";
 
-const ProfilePage = ({ userName }) => {
-  const [userStats, setUserStats] = useState(null);
-  const [pickHistory, setPickHistory] = useState([]);
+const teams = [
+  {
+    home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
+    away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
+  },
+  {
+    home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
+    away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
+  },
+  // ... (keep the rest of the teams data)
+];
 
-  useEffect(() => {
-    // Simulate fetching user stats and pick history
-    setTimeout(() => {
-      setUserStats({
-        totalCorrectPicks: 45,
-        totalPicks: 60,
-        winPercentage: 75,
+const HomePage = () => {
+  const [selectedPicks, setSelectedPicks] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    message: "",
+    type: "success",
+  });
+
+  const handlePickClick = (gameIndex, teamType) => {
+    setSelectedPicks((prevPicks) => ({
+      ...prevPicks,
+      [gameIndex]: teamType,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Picks submitted:", selectedPicks);
+
+    if (Object.keys(selectedPicks).length === teams.length) {
+      setModalContent({
+        title: "Picks Submitted Successfully",
+        message: "Your picks have been recorded. Good luck!",
+        type: "success",
       });
-      setPickHistory([
-        { week: 3, correctPicks: 12, totalPicks: 16 },
-        { week: 2, correctPicks: 14, totalPicks: 16 },
-        { week: 1, correctPicks: 19, totalPicks: 28 },
-      ]);
-    }, 1000);
-  }, [userName]);
-
-  if (!userStats) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  const StatCard = ({ icon: Icon, title, value, color }) => (
-    <div
-      className={`bg-white rounded-lg shadow-md p-6 flex items-center ${color}`}
-    >
-      <div className="rounded-full p-3 mr-4">
-        <Icon size={24} />
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
-        <p className="text-2xl font-bold">{value}</p>
-      </div>
-    </div>
-  );
+    } else {
+      setModalContent({
+        title: "Incomplete Picks",
+        message: "Please make selections for all games before submitting.",
+        type: "error",
+      });
+    }
+    setIsModalOpen(true);
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex items-center justify-center mb-4">
-          <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-            {userName.charAt(0).toUpperCase()}
-          </div>
-        </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          {userName}
-        </h1>
-        <p className="text-center text-gray-600">NFL Pick'em Enthusiast</p>
-      </div>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
+        This Week's Games
+      </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          icon={Award}
-          title="Correct Picks"
-          value={userStats.totalCorrectPicks}
-          color="text-green-500"
-        />
-        <StatCard
-          icon={User}
-          title="Total Picks"
-          value={userStats.totalPicks}
-          color="text-blue-500"
-        />
-        <StatCard
-          icon={Percent}
-          title="Win Percentage"
-          value={`${userStats.winPercentage}%`}
-          color="text-purple-500"
-        />
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">
-          Performance Chart
-        </h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={pickHistory.reverse()}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {teams.map((game, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-lg shadow-md overflow-hidden"
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="week"
-                label={{ value: "Week", position: "insideBottom", offset: -5 }}
-              />
-              <YAxis
-                label={{ value: "Picks", angle: -90, position: "insideLeft" }}
-              />
-              <Tooltip />
-              <Bar dataKey="correctPicks" name="Correct Picks" fill="#4CAF50" />
-              <Bar dataKey="totalPicks" name="Total Picks" fill="#2196F3" />
-            </BarChart>
-          </ResponsiveContainer>
+              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Game {index + 1}
+                </h2>
+              </div>
+              <div className="p-4 space-y-4">
+                {[game.away, game.home].map((team, teamIndex) => (
+                  <div
+                    key={teamIndex}
+                    className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
+                      selectedPicks[index] ===
+                      (teamIndex === 0 ? "away" : "home")
+                        ? "bg-blue-100 border-2 border-blue-500"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }`}
+                    onClick={() =>
+                      handlePickClick(index, teamIndex === 0 ? "away" : "home")
+                    }
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-700">
+                        {team.abbreviation}
+                      </div>
+                      <span className="font-medium">{team.name}</span>
+                    </div>
+                    <span
+                      className={`font-semibold ${
+                        team.spread > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {team.spread > 0 ? "+" : ""}
+                      {team.spread}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Submit Picks
+          </button>
+        </div>
+      </form>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Week
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Correct Picks
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Picks
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Percentage
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {pickHistory.map((week) => (
-              <tr
-                key={week.week}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Week {week.week}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {week.correctPicks}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {week.totalPicks}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {((week.correctPicks / week.totalPicks) * 100).toFixed(2)}%
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalContent.title}
+        type={modalContent.type}
+      >
+        {modalContent.message}
+      </Modal>
     </div>
   );
 };
 
-export default ProfilePage;
+export default HomePage;
