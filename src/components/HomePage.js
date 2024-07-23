@@ -1,257 +1,161 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { User, Award, Percent } from "lucide-react";
 
-const teams = [
-  {
-    home: {
-      abbreviation: "NE",
-      name: "New England Patriots",
-      spread: -6.5,
-    },
-    away: {
-      abbreviation: "KC",
-      name: "Kansas City Chiefs",
-      spread: 6.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "TB",
-      name: "Tampa Bay Buccaneers",
-      spread: -3.5,
-    },
-    away: {
-      abbreviation: "DAL",
-      name: "Dallas Cowboys",
-      spread: 3.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "SF",
-      name: "San Francisco 49ers",
-      spread: -4.5,
-    },
-    away: {
-      abbreviation: "SEA",
-      name: "Seattle Seahawks",
-      spread: 4.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "PIT",
-      name: "Pittsburgh Steelers",
-      spread: -2.5,
-    },
-    away: {
-      abbreviation: "BAL",
-      name: "Baltimore Ravens",
-      spread: 2.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "NO",
-      name: "New Orleans Saints",
-      spread: -7.5,
-    },
-    away: {
-      abbreviation: "GB",
-      name: "Green Bay Packers",
-      spread: 7.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "LAR",
-      name: "Los Angeles Rams",
-      spread: -5.5,
-    },
-    away: {
-      abbreviation: "CHI",
-      name: "Chicago Bears",
-      spread: 5.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "BUF",
-      name: "Buffalo Bills",
-      spread: -9.5,
-    },
-    away: {
-      abbreviation: "MIA",
-      name: "Miami Dolphins",
-      spread: 9.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "IND",
-      name: "Indianapolis Colts",
-      spread: -1.5,
-    },
-    away: {
-      abbreviation: "TEN",
-      name: "Tennessee Titans",
-      spread: 1.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "CLE",
-      name: "Cleveland Browns",
-      spread: -3.5,
-    },
-    away: {
-      abbreviation: "CIN",
-      name: "Cincinnati Bengals",
-      spread: 3.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "DEN",
-      name: "Denver Broncos",
-      spread: -6.5,
-    },
-    away: {
-      abbreviation: "LV",
-      name: "Las Vegas Raiders",
-      spread: 6.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "ARI",
-      name: "Arizona Cardinals",
-      spread: -2.5,
-    },
-    away: {
-      abbreviation: "MIN",
-      name: "Minnesota Vikings",
-      spread: 2.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "CAR",
-      name: "Carolina Panthers",
-      spread: -1.5,
-    },
-    away: {
-      abbreviation: "NYJ",
-      name: "New York Jets",
-      spread: 1.5,
-    },
-  },
-  {
-    home: {
-      abbreviation: "HOU",
-      name: "Houston Texans",
-      spread: -4.5,
-    },
-    away: {
-      abbreviation: "JAX",
-      name: "Jacksonville Jaguars",
-      spread: 4.5,
-    },
-  },
-];
+const ProfilePage = ({ userName }) => {
+  const [userStats, setUserStats] = useState(null);
+  const [pickHistory, setPickHistory] = useState([]);
 
-const HomePage = ({ onLogout }) => {
-  const [selectedCells, setSelectedCells] = useState({});
+  useEffect(() => {
+    // Simulate fetching user stats and pick history
+    setTimeout(() => {
+      setUserStats({
+        totalCorrectPicks: 45,
+        totalPicks: 60,
+        winPercentage: 75,
+      });
+      setPickHistory([
+        { week: 3, correctPicks: 12, totalPicks: 16 },
+        { week: 2, correctPicks: 14, totalPicks: 16 },
+        { week: 1, correctPicks: 19, totalPicks: 28 },
+      ]);
+    }, 1000);
+  }, [userName]);
 
-  const handleCellClick = (rowIndex, cellType) => {
-    setSelectedCells((prevState) => ({
-      ...prevState,
-      [rowIndex]: prevState[rowIndex] === cellType ? null : cellType,
-    }));
-  };
+  if (!userStats) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
-  const getCellStyle = (rowIndex, cellType) => {
-    return selectedCells[rowIndex] === cellType ? "bg-green-200" : "bg-white";
-  };
+  const StatCard = ({ icon: Icon, title, value, color }) => (
+    <div
+      className={`bg-white rounded-lg shadow-md p-6 flex items-center ${color}`}
+    >
+      <div className="rounded-full p-3 mr-4">
+        <Icon size={24} />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+        <p className="text-2xl font-bold">{value}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-base font-semibold leading-6 text-gray-900">
-            NFL Games
-          </h1>
-          <p className="mt-2 text-sm text-center text-balance text-gray-700">
-            A list of upcoming NFL games with team names and point spreads.
-          </p>
-        </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none"></div>
-      </div>
-      <div className="mt-8 flow-root">
-        <div className="overflow-x-auto pb-32">
-          <div className="inline-block min-w-full align-middle">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="py-3.5 pl-4 pr-3 text-center text-sm font-semibold text-gray-900"
-                    >
-                      Away Team
-                    </th>
-                    <th scope="col" className="w-px"></th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
-                    >
-                      Home Team
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {teams.map((game, rowIndex) => (
-                    <tr key={rowIndex}>
-                      <td
-                        className={`whitespace-nowrap text-center py-4 pl-4 pr-3 text-sm font-medium text-gray-900 cursor-pointer ${getCellStyle(
-                          rowIndex,
-                          "away"
-                        )}`}
-                        onClick={() => handleCellClick(rowIndex, "away")}
-                      >
-                        {game.away.abbreviation} (
-                        {game.away.spread > 0 ? "+" : ""}
-                        {game.away.spread})
-                        <br />
-                        <span className="text-xs text-gray-500">
-                          {game.away.name}
-                        </span>
-                      </td>
-                      <td className="w-px bg-gray-200"></td>
-                      <td
-                        className={`whitespace-nowrap text-center px-3 py-4 text-sm font-medium text-gray-900 cursor-pointer ${getCellStyle(
-                          rowIndex,
-                          "home"
-                        )}`}
-                        onClick={() => handleCellClick(rowIndex, "home")}
-                      >
-                        {game.home.abbreviation} (
-                        {game.home.spread > 0 ? "+" : ""}
-                        {game.home.spread})
-                        <br />
-                        <span className="text-xs text-gray-500">
-                          {game.home.name}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+            {userName.charAt(0).toUpperCase()}
           </div>
         </div>
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+          {userName}
+        </h1>
+        <p className="text-center text-gray-600">NFL Pick'em Enthusiast</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          icon={Award}
+          title="Correct Picks"
+          value={userStats.totalCorrectPicks}
+          color="text-green-500"
+        />
+        <StatCard
+          icon={User}
+          title="Total Picks"
+          value={userStats.totalPicks}
+          color="text-blue-500"
+        />
+        <StatCard
+          icon={Percent}
+          title="Win Percentage"
+          value={`${userStats.winPercentage}%`}
+          color="text-purple-500"
+        />
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          Performance Chart
+        </h2>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={pickHistory.reverse()}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="week"
+                label={{ value: "Week", position: "insideBottom", offset: -5 }}
+              />
+              <YAxis
+                label={{ value: "Picks", angle: -90, position: "insideLeft" }}
+              />
+              <Tooltip />
+              <Bar dataKey="correctPicks" name="Correct Picks" fill="#4CAF50" />
+              <Bar dataKey="totalPicks" name="Total Picks" fill="#2196F3" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Week
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Correct Picks
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Picks
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Percentage
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {pickHistory.map((week) => (
+              <tr
+                key={week.week}
+                className="hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  Week {week.week}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {week.correctPicks}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {week.totalPicks}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {((week.correctPicks / week.totalPicks) * 100).toFixed(2)}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default HomePage;
+export default ProfilePage;

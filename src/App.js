@@ -10,6 +10,7 @@ import BottomNav from "./components/BottomNav";
 import HomePage from "./components/HomePage";
 import Header from "./components/Header";
 import LeaderboardPage from "./components/LeaderboardPage";
+import ProfilePage from "./components/ProfilePage";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,18 +41,24 @@ function App() {
 
   return (
     <Router>
-      <div className="App min-h-screen flex flex-col">
+      <div className="App min-h-screen flex flex-col bg-gray-100">
         {!isLoggedIn ? (
           <LoginComponent onLogin={handleLogin} />
         ) : (
           <>
             <Header userName={userName} onLogout={handleLogout} />
-            <main className="flex-grow pt-24 pb-16">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+            <main className="flex-grow pt-20 pb-20 px-4">
+              <div className="container mx-auto max-w-4xl">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route
+                    path="/profile"
+                    element={<ProfilePage userName={userName} />}
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </div>
             </main>
             <BottomNav />
           </>

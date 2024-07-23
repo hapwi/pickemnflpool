@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Menu, ChevronDown } from "lucide-react";
 
 const Header = ({ userName, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,46 +22,27 @@ const Header = ({ userName, onLogout }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handlePicksClick = () => {
-    // Add your logic for the Picks option here
-    console.log("Picks option clicked");
-    setIsMenuOpen(false);
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white shadow z-10">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Dashboard
-        </h1>
+    <header className="fixed top-0 left-0 right-0 bg-blue-600 text-white shadow-md z-10">
+      <div className="container mx-auto max-w-4xl px-4 py-3 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">NFL Pick'em</h1>
         <div className="relative" ref={menuRef}>
           <button
             onClick={toggleMenu}
-            className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-md px-3 py-2 hover:bg-blue-700 transition-colors"
           >
-            <span className="sr-only">Open user menu</span>
-            <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-              {userName.charAt(0).toUpperCase()}
-            </div>
+            <span className="font-medium">{userName}</span>
+            <ChevronDown size={20} />
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md overflow-hidden shadow-xl z-20">
               <div className="block px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
                 {userName}
               </div>
               <button
-                onClick={handlePicksClick}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-              >
-                Picks
-              </button>
-              <button
-                onClick={() => {
-                  onLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                onClick={onLogout}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Logout
               </button>
