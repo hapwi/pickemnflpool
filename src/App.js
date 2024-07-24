@@ -33,6 +33,18 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    // Update HTML classes based on dark mode
+    const html = document.documentElement;
+    if (darkMode) {
+      html.classList.add("dark", "bg-gray-900");
+      html.classList.remove("bg-gray-100");
+    } else {
+      html.classList.remove("dark", "bg-gray-900");
+      html.classList.add("bg-gray-100");
+    }
+  }, [darkMode]);
+
   const handleLogin = (name) => {
     setIsLoggedIn(true);
     setUserName(name);
@@ -48,8 +60,9 @@ function App() {
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    localStorage.setItem("darkMode", (!darkMode).toString());
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode.toString());
   };
 
   return (
@@ -57,9 +70,7 @@ function App() {
       <ScrollToTop />
       <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
         <div
-          className={`App min-h-screen flex flex-col ${
-            darkMode ? "dark bg-gray-900" : "bg-gray-100"
-          }`}
+          className={`App min-h-screen flex flex-col ${darkMode ? "dark" : ""}`}
         >
           {!isLoggedIn ? (
             <LoginComponent onLogin={handleLogin} />
