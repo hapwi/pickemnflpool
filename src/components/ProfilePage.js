@@ -44,7 +44,7 @@ const ProfilePage = ({ userName }) => {
     >
       <div
         className={`rounded-full p-2 mr-3 ${
-          darkMode ? "bg-gray-600" : "bg-gray-100"
+          darkMode ? "bg-gray-800" : "bg-gray-100"
         }`}
       >
         <Icon
@@ -75,7 +75,7 @@ const ProfilePage = ({ userName }) => {
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div
         className={`${
-          darkMode ? "bg-gray-800" : "bg-gray-800"
+          darkMode ? "bg-gray-700" : "bg-gray-700"
         } rounded-lg shadow-lg p-6 mb-6 text-white`}
       >
         <div className="flex flex-col sm:flex-row items-center justify-between">
@@ -83,7 +83,7 @@ const ProfilePage = ({ userName }) => {
             <div
               className={`w-20 h-20 ${
                 darkMode
-                  ? "bg-gray-700 text-gray-200"
+                  ? "bg-gray-800 text-gray-200"
                   : "bg-white text-gray-800"
               } rounded-full flex items-center justify-center text-3xl font-bold mb-4 sm:mb-0 sm:mr-6`}
             >
