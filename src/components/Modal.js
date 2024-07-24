@@ -1,22 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { DarkModeContext } from "../App";
 
 const Modal = ({ isOpen, onClose, title, children, type = "success" }) => {
   const { darkMode } = useContext(DarkModeContext);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add("modal-open");
-    } else {
-      document.body.classList.remove("modal-open");
-    }
-
-    // Cleanup function to remove the class when the component unmounts
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -36,7 +23,7 @@ const Modal = ({ isOpen, onClose, title, children, type = "success" }) => {
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"
