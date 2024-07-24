@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 // Fake data for leaderboard entries (unchanged)
 const fakeLeaderboardData = [
