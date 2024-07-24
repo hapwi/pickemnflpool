@@ -43,11 +43,9 @@ const Modal = ({ isOpen, onClose, title, children, type = "success" }) => {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
     >
       <div
         className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full m-4 border-t-4 ${colors}`}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <div className="sm:flex sm:items-start">
