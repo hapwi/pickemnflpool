@@ -14,6 +14,36 @@ export const weeklyGames = {
       away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
       winner: null, // null indicates the game hasn't been played yet
     },
+    {
+      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
+      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
+      winner: "NE", // Set the winner after the game is finished
+    },
+    {
+      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
+      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
+      winner: null, // null indicates the game hasn't been played yet
+    },
+    {
+      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
+      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
+      winner: "NE", // Set the winner after the game is finished
+    },
+    {
+      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
+      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
+      winner: null, // null indicates the game hasn't been played yet
+    },
+    {
+      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
+      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
+      winner: "NE", // Set the winner after the game is finished
+    },
+    {
+      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
+      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
+      winner: null, // null indicates the game hasn't been played yet
+    },
     // Add more games for week 1
   ],
   2: [
