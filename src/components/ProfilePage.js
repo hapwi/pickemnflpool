@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { User, Award, Percent, TrendingUp } from "lucide-react";
 
 const ProfilePage = ({ userName }) => {
@@ -132,6 +133,15 @@ const ProfilePage = ({ userName }) => {
       </div>
     </div>
   );
+};
+
+ProfilePage.propTypes = {
+  userId: PropTypes.string.isRequired,
+  userName: PropTypes.string,
+};
+
+ProfilePage.defaultProps = {
+  userName: "User",
 };
 
 export default ProfilePage;

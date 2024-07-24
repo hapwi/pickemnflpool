@@ -5,6 +5,7 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
+import { supabase } from "./supabaseClient";
 import LoginComponent from "./components/LoginComponent";
 import BottomNav from "./components/BottomNav";
 import HomePage from "./components/HomePage";
@@ -14,41 +15,39 @@ import ProfilePage from "./components/ProfilePage";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
+  const [session, setSession] = useState(null);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
-    const loggedInStatus = localStorage.getItem("isLoggedIn");
-    const storedUserName = localStorage.getItem("userName");
-    if (loggedInStatus === "true" && storedUserName) {
-      setIsLoggedIn(true);
-      setUserName(storedUserName);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setUsername(session.user.email.split("@")[0]);
+      }
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        setUsername(session.user.email.split("@")[0]);
+      }
+    });
   }, []);
 
-  const handleLogin = (name) => {
-    setIsLoggedIn(true);
-    setUserName(name);
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("userName", name);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserName("");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userName");
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.log("Error logging out:", error.message);
   };
 
   return (
     <Router>
       <ScrollToTop />
       <div className="App min-h-screen flex flex-col bg-gray-900">
-        {!isLoggedIn ? (
-          <LoginComponent onLogin={handleLogin} />
+        {!session ? (
+          <LoginComponent />
         ) : (
           <>
-            <Header userName={userName} onLogout={handleLogout} />
+            <Header userName={username} onLogout={handleLogout} />
             <main className="flex-grow pt-20 pb-20 px-4">
               <div className="container mx-auto max-w-4xl">
                 <Routes>
@@ -56,7 +55,12 @@ function App() {
                   <Route path="/leaderboard" element={<LeaderboardPage />} />
                   <Route
                     path="/profile"
-                    element={<ProfilePage userName={userName} />}
+                    element={
+                      <ProfilePage
+                        userId={session.user.id}
+                        userName={username}
+                      />
+                    }
                   />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

@@ -79,10 +79,6 @@ const HomePage = () => {
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-lg text-gray-300">Games Remaining</p>
-            <p className="text-3xl font-bold">{teams.length}</p>
-          </div>
         </div>
       </div>
 

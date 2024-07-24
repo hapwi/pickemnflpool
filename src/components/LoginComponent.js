@@ -1,16 +1,34 @@
 import React, { useState } from "react";
+import { supabase } from "../supabaseClient";
+import Modal from "./Modal"; // Import the Modal component
 
-const LoginComponent = ({ onLogin }) => {
+const LoginComponent = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", message: "" });
+  const EMAIL_DOMAIN = "@pempool-123-test-1.com";
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (username && password) {
-      onLogin(username);
-    } else {
-      alert("Please enter both username and password");
+    try {
+      const email = username + EMAIL_DOMAIN;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    } catch (error) {
+      setModalContent({
+        title: "Login Error",
+        message: error.message,
+      });
+      setIsModalOpen(true);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -68,6 +86,15 @@ const LoginComponent = ({ onLogin }) => {
           </div>
         </form>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={modalContent.title}
+        type="error"
+      >
+        {modalContent.message}
+      </Modal>
     </div>
   );
 };

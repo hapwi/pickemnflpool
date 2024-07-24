@@ -155,22 +155,6 @@ const LeaderboardPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-gray-700 rounded-lg shadow-lg p-6 mb-8 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Trophy className="w-8 h-8 mr-4" />
-            <div>
-              <h1 className="text-2xl font-bold">Leaderboard</h1>
-              <p className="text-gray-300">See how you stack up</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-gray-300">Players</p>
-            <p className="text-3xl font-bold">{sortedLeaderboard.length}</p>
-          </div>
-        </div>
-      </div>
-
       <div className="mb-6">
         <label
           htmlFor="week-select"
