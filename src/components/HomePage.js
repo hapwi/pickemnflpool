@@ -123,7 +123,7 @@ const HomePage = () => {
                     <div className="flex items-center">
                       <span
                         className={`font-semibold ${
-                          team.spread > 0 ? "text-green-400" : "text-red-400"
+                          team.spread > 0 ? "text-red-400" : "text-green-400"
                         }`}
                       >
                         {team.spread > 0 ? "+" : ""}
