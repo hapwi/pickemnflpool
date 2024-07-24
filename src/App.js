@@ -13,16 +13,23 @@ import LeaderboardPage from "./components/LeaderboardPage";
 import ProfilePage from "./components/ProfilePage";
 import ScrollToTop from "./components/ScrollToTop";
 
+export const DarkModeContext = React.createContext();
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const loggedInStatus = localStorage.getItem("isLoggedIn");
     const storedUserName = localStorage.getItem("userName");
+    const storedDarkMode = localStorage.getItem("darkMode");
     if (loggedInStatus === "true" && storedUserName) {
       setIsLoggedIn(true);
       setUserName(storedUserName);
+    }
+    if (storedDarkMode === "true") {
+      setDarkMode(true);
     }
   }, []);
 
@@ -40,32 +47,43 @@ function App() {
     localStorage.removeItem("userName");
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    localStorage.setItem("darkMode", (!darkMode).toString());
+  };
+
   return (
     <Router>
       <ScrollToTop />
-      <div className="App min-h-screen flex flex-col bg-gray-100">
-        {!isLoggedIn ? (
-          <LoginComponent onLogin={handleLogin} />
-        ) : (
-          <>
-            <Header userName={userName} onLogout={handleLogout} />
-            <main className="flex-grow pt-20 pb-20 px-4">
-              <div className="container mx-auto max-w-4xl">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/leaderboard" element={<LeaderboardPage />} />
-                  <Route
-                    path="/profile"
-                    element={<ProfilePage userName={userName} />}
-                  />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </div>
-            </main>
-            <BottomNav />
-          </>
-        )}
-      </div>
+      <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
+        <div
+          className={`App min-h-screen flex flex-col ${
+            darkMode ? "dark bg-gray-900" : "bg-gray-100"
+          }`}
+        >
+          {!isLoggedIn ? (
+            <LoginComponent onLogin={handleLogin} />
+          ) : (
+            <>
+              <Header userName={userName} onLogout={handleLogout} />
+              <main className="flex-grow pt-20 pb-20 px-4">
+                <div className="container mx-auto max-w-4xl">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/leaderboard" element={<LeaderboardPage />} />
+                    <Route
+                      path="/profile"
+                      element={<ProfilePage userName={userName} />}
+                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </div>
+              </main>
+              <BottomNav />
+            </>
+          )}
+        </div>
+      </DarkModeContext.Provider>
     </Router>
   );
 }

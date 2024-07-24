@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Modal from "./Modal";
 import { Calendar, ChevronRight } from "lucide-react";
+import { DarkModeContext } from "../App";
 
 const teams = [
   {
@@ -23,6 +24,7 @@ const HomePage = () => {
     type: "success",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { darkMode } = useContext(DarkModeContext);
 
   useEffect(() => {
     // Simulate loading data
@@ -61,26 +63,40 @@ const HomePage = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        <div
+          className={`animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 ${
+            darkMode ? "border-blue-400" : "border-blue-500"
+          }`}
+        ></div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-blue-600 rounded-lg shadow-lg p-6 mb-8 text-white">
+      <div
+        className={`${
+          darkMode ? "bg-gray-700" : "bg-blue-600"
+        } rounded-lg shadow-lg p-6 mb-8 text-white`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Calendar className="w-8 h-8 mr-4" />
             <div>
               <h1 className="text-2xl font-bold">Week 3</h1>
-              <p className="text-blue-200">
+              <p className={darkMode ? "text-gray-300" : "text-blue-200"}>
                 Make your picks for this week's games
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-lg text-blue-200">Games Remaining</p>
+            <p
+              className={`text-lg ${
+                darkMode ? "text-gray-300" : "text-blue-200"
+              }`}
+            >
+              Games Remaining
+            </p>
             <p className="text-3xl font-bold">{teams.length}</p>
           </div>
         </div>
@@ -91,10 +107,22 @@ const HomePage = () => {
           {teams.map((game, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
+              className={`${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } rounded-lg shadow-md overflow-hidden`}
             >
-              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+              <div
+                className={`${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600"
+                    : "bg-gray-100 border-gray-200"
+                } px-4 py-2 border-b`}
+              >
+                <h2
+                  className={`text-lg font-semibold ${
+                    darkMode ? "text-gray-200" : "text-gray-800"
+                  } flex items-center`}
+                >
                   Game {index + 1}
                 </h2>
               </div>
@@ -105,7 +133,11 @@ const HomePage = () => {
                     className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
                       selectedPicks[index] ===
                       (teamIndex === 0 ? "away" : "home")
-                        ? "bg-blue-100 border-2 border-blue-500"
+                        ? darkMode
+                          ? "bg-blue-900 border-2 border-blue-500"
+                          : "bg-blue-100 border-2 border-blue-500"
+                        : darkMode
+                        ? "bg-gray-700 hover:bg-gray-600"
                         : "bg-gray-50 hover:bg-gray-100"
                     }`}
                     onClick={() =>
@@ -113,21 +145,43 @@ const HomePage = () => {
                     }
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-700">
+                      <div
+                        className={`w-10 h-10 ${
+                          darkMode
+                            ? "bg-gray-600 text-gray-200"
+                            : "bg-gray-300 text-gray-700"
+                        } rounded-full flex items-center justify-center font-bold`}
+                      >
                         {team.abbreviation}
                       </div>
-                      <span className="font-medium">{team.name}</span>
+                      <span
+                        className={`font-medium ${
+                          darkMode ? "text-gray-200" : "text-gray-800"
+                        }`}
+                      >
+                        {team.name}
+                      </span>
                     </div>
                     <div className="flex items-center">
                       <span
                         className={`font-semibold ${
-                          team.spread > 0 ? "text-green-600" : "text-red-600"
+                          team.spread > 0
+                            ? darkMode
+                              ? "text-green-400"
+                              : "text-green-600"
+                            : darkMode
+                            ? "text-red-400"
+                            : "text-red-600"
                         }`}
                       >
                         {team.spread > 0 ? "+" : ""}
                         {team.spread}
                       </span>
-                      <ChevronRight className="w-5 h-5 ml-2 text-gray-400" />
+                      <ChevronRight
+                        className={`w-5 h-5 ml-2 ${
+                          darkMode ? "text-gray-400" : "text-gray-400"
+                        }`}
+                      />
                     </div>
                   </div>
                 ))}
@@ -138,7 +192,11 @@ const HomePage = () => {
         <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
+            className={`${
+              darkMode
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            } text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center`}
           >
             Submit Picks
             <ChevronRight className="w-5 h-5 ml-2" />
