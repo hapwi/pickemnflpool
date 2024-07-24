@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { Calendar, ChevronRight } from "lucide-react";
-
-const teams = [
-  {
-    home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
-    away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
-  },
-  {
-    home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
-    away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
-  },
-  // ... (keep the rest of the teams data)
-];
+import { supabase } from "../supabaseClient";
+import { currentWeek, getGamesForWeek } from "../gameData";
 
 const HomePage = () => {
   const [selectedPicks, setSelectedPicks] = useState({});
@@ -23,6 +13,7 @@ const HomePage = () => {
     type: "success",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const teams = getGamesForWeek(currentWeek);
 
   useEffect(() => {
     // Simulate loading data
@@ -38,16 +29,65 @@ const HomePage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const sendPicksToSupabase = async (picks, week) => {
+    try {
+      const { data: existingPicks, error: fetchError } = await supabase
+        .from("user_picks")
+        .select("*")
+        .eq("user_id", supabase.auth.user().id)
+        .eq("week", week);
+
+      if (fetchError) throw new Error("Error fetching existing picks");
+
+      const upsertData = {
+        user_id: supabase.auth.user().id,
+        week: week,
+        picks: picks,
+      };
+
+      if (existingPicks && existingPicks.length > 0) {
+        const { error: updateError } = await supabase
+          .from("user_picks")
+          .update(upsertData)
+          .eq("user_id", supabase.auth.user().id)
+          .eq("week", week);
+
+        if (updateError) throw new Error("Error updating picks");
+      } else {
+        const { error: insertError } = await supabase
+          .from("user_picks")
+          .insert(upsertData);
+
+        if (insertError) throw new Error("Error inserting picks");
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in sendPicksToSupabase:", error.message);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Picks submitted:", selectedPicks);
 
     if (Object.keys(selectedPicks).length === teams.length) {
-      setModalContent({
-        title: "Picks Submitted Successfully",
-        message: "Your picks have been recorded. Good luck!",
-        type: "success",
-      });
+      try {
+        await sendPicksToSupabase(selectedPicks, currentWeek);
+        setModalContent({
+          title: "Picks Submitted Successfully",
+          message: `Your picks for Week ${currentWeek} have been recorded. Good luck!`,
+          type: "success",
+        });
+      } catch (error) {
+        setModalContent({
+          title: "Error Submitting Picks",
+          message:
+            "There was an error submitting your picks. Please try again.",
+          type: "error",
+        });
+      }
     } else {
       setModalContent({
         title: "Incomplete Picks",
@@ -77,7 +117,7 @@ const HomePage = () => {
           <div className="flex items-center">
             <Calendar className="w-8 h-8 mr-4" />
             <div>
-              <h1 className="text-2xl font-bold">Week 3</h1>
+              <h1 className="text-2xl font-bold">Week {currentWeek}</h1>
               <p className="text-gray-300">
                 Make your picks for this week's games
               </p>
