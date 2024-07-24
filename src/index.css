@@ -2,3 +2,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body.modal-open {
+  overflow: hidden;
+  padding-right: 15px; /* Adjust for scrollbar disappearance */
+}
+
+.modal-open .fixed.inset-0.overflow-y-auto {
+  overflow-y: scroll;
+}
