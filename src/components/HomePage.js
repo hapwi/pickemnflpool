@@ -13,13 +13,29 @@ const HomePage = () => {
     type: "success",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState("");
   const teams = getGamesForWeek(currentWeek);
 
   useEffect(() => {
-    // Simulate loading data
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const fetchUserData = async () => {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+        if (userError)
+          throw new Error("Error getting user: " + userError.message);
+        if (!user) throw new Error("No user logged in");
+
+        setUsername(user.email.split("@")[0]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   const handlePickClick = (gameIndex, teamType) => {
@@ -31,34 +47,58 @@ const HomePage = () => {
 
   const sendPicksToSupabase = async (picks, week) => {
     try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError)
+        throw new Error("Error getting user: " + userError.message);
+      if (!user) throw new Error("No user logged in");
+
+      console.log("User from Supabase:", user);
+      console.log("Username:", username);
+
+      if (!username) {
+        throw new Error("Unable to determine username");
+      }
+
       const { data: existingPicks, error: fetchError } = await supabase
         .from("user_picks")
         .select("*")
-        .eq("user_id", supabase.auth.user().id)
+        .eq("user_id", user.id)
         .eq("week", week);
 
-      if (fetchError) throw new Error("Error fetching existing picks");
+      if (fetchError)
+        throw new Error("Error fetching existing picks: " + fetchError.message);
 
       const upsertData = {
-        user_id: supabase.auth.user().id,
+        user_id: user.id,
+        username: username,
         week: week,
         picks: picks,
       };
 
+      console.log("Data to be upserted:", upsertData);
+
       if (existingPicks && existingPicks.length > 0) {
-        const { error: updateError } = await supabase
+        const { data, error: updateError } = await supabase
           .from("user_picks")
           .update(upsertData)
-          .eq("user_id", supabase.auth.user().id)
+          .eq("user_id", user.id)
           .eq("week", week);
 
-        if (updateError) throw new Error("Error updating picks");
+        if (updateError)
+          throw new Error("Error updating picks: " + updateError.message);
+        console.log("Update result:", data);
       } else {
-        const { error: insertError } = await supabase
+        const { data, error: insertError } = await supabase
           .from("user_picks")
           .insert(upsertData);
 
-        if (insertError) throw new Error("Error inserting picks");
+        if (insertError)
+          throw new Error("Error inserting picks: " + insertError.message);
+        console.log("Insert result:", data);
       }
 
       return true;
@@ -81,10 +121,10 @@ const HomePage = () => {
           type: "success",
         });
       } catch (error) {
+        console.error("Detailed error:", error);
         setModalContent({
           title: "Error Submitting Picks",
-          message:
-            "There was an error submitting your picks. Please try again.",
+          message: `There was an error submitting your picks: ${error.message}. Please try again or contact support if the issue persists.`,
           type: "error",
         });
       }

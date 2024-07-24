@@ -17,27 +17,57 @@ import ScrollToTop from "./components/ScrollToTop";
 function App() {
   const [session, setSession] = useState(null);
   const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        setUsername(session.user.email.split("@")[0]);
+    const fetchSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error.message);
+      } else {
+        setSession(session);
+        if (session && session.user) {
+          const fetchedUsername = session.user.email.split("@")[0];
+          console.log("Setting username:", fetchedUsername);
+          setUsername(fetchedUsername);
+        }
       }
-    });
+      setLoading(false);
+    };
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        setUsername(session.user.email.split("@")[0]);
+    fetchSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        console.log("Auth state changed. New session:", session);
+        setSession(session);
+        if (session && session.user) {
+          const newUsername = session.user.email.split("@")[0];
+          console.log("Updating username:", newUsername);
+          setUsername(newUsername);
+        } else {
+          setUsername("");
+        }
       }
-    });
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.log("Error logging out:", error.message);
+    setUsername("");
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading component
+  }
 
   return (
     <Router>
@@ -51,7 +81,16 @@ function App() {
             <main className="flex-grow pt-20 pb-20 px-4">
               <div className="container mx-auto max-w-4xl">
                 <Routes>
-                  <Route path="/" element={<HomePage />} />
+                  <Route
+                    path="/"
+                    element={
+                      username ? (
+                        <HomePage username={username} />
+                      ) : (
+                        <div>Error: Username not available</div>
+                      )
+                    }
+                  />
                   <Route path="/leaderboard" element={<LeaderboardPage />} />
                   <Route
                     path="/profile"
