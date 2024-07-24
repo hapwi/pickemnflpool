@@ -1,7 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 
 const Modal = ({ isOpen, onClose, title, children, type = "success" }) => {
+  useEffect(() => {
+    if (isOpen) {
+      // Disable scrolling on the body when the modal is open
+      document.body.style.overflow = "hidden";
+    } else {
+      // Re-enable scrolling when the modal is closed
+      document.body.style.overflow = "unset";
+    }
+
+    // Cleanup function to re-enable scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const Icon = type === "success" ? CheckCircle : XCircle;
@@ -12,12 +27,12 @@ const Modal = ({ isOpen, onClose, title, children, type = "success" }) => {
 
   return (
     <div
-      className="fixed z-10 inset-0 overflow-y-auto"
+      className="fixed z-50 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"

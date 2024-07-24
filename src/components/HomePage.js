@@ -58,6 +58,10 @@ const HomePage = () => {
     setIsModalOpen(true);
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -67,7 +71,11 @@ const HomePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div
+      className={`container mx-auto px-4 py-8 max-w-4xl ${
+        isModalOpen ? "overflow-hidden max-h-screen" : ""
+      }`}
+    >
       <div className="bg-gray-700 rounded-lg shadow-lg p-6 mb-8 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -146,7 +154,7 @@ const HomePage = () => {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={closeModal}
         title={modalContent.title}
         type={modalContent.type}
       >
