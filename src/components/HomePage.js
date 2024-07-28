@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Modal from "./Modal";
-import { Calendar, ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
 
@@ -171,8 +171,8 @@ const HomePage = () => {
   if (isLoading && isFirstFetch) {
     // Only show spinner if it's the first fetch
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-900">
+        <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
       </div>
     );
   }

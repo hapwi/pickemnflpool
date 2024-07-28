@@ -1,61 +1,56 @@
-// gameData.js
+import axios from "axios";
 
 export const currentWeek = 1; // Set the current week here
 
-export const weeklyGames = {
-  1: [
-    {
-      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
-      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
-      winner: "NE", // Set the winner after the game is finished
-    },
-    {
-      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
-      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
-      winner: null, // null indicates the game hasn't been played yet
-    },
-    {
-      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
-      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
-      winner: "NE", // Set the winner after the game is finished
-    },
-    {
-      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
-      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
-      winner: null, // null indicates the game hasn't been played yet
-    },
-    {
-      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
-      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
-      winner: "NE", // Set the winner after the game is finished
-    },
-    {
-      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
-      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
-      winner: null, // null indicates the game hasn't been played yet
-    },
-    {
-      home: { abbreviation: "NE", name: "New England Patriots", spread: -6.5 },
-      away: { abbreviation: "KC", name: "Kansas City Chiefs", spread: 6.5 },
-      winner: "NE", // Set the winner after the game is finished
-    },
-    {
-      home: { abbreviation: "TB", name: "Tampa Bay Buccaneers", spread: -3.5 },
-      away: { abbreviation: "DAL", name: "Dallas Cowboys", spread: 3.5 },
-      winner: null, // null indicates the game hasn't been played yet
-    },
-    // Add more games for week 1
-  ],
-  2: [
-    {
-      home: { abbreviation: "SF", name: "San Francisco 49ers", spread: -4.5 },
-      away: { abbreviation: "SEA", name: "Seattle Seahawks", spread: 4.5 },
-      winner: null,
-    },
-    // Add more games for week 2
-  ],
-  // Add more weeks as needed
+export const weeklyGames = {};
+
+const fetchGames = async () => {
+  try {
+    const response = await axios.get(
+      "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+    );
+    const data = response.data;
+
+    data.events.forEach((event) => {
+      // Check if the event is part of the regular season
+      if (event.season.type === 2) {
+        // Regular season type ID is 2
+        const weekNumber = event.week.number;
+        if (!weeklyGames[weekNumber]) {
+          weeklyGames[weekNumber] = [];
+        }
+
+        const homeTeam = event.competitions[0].competitors.find(
+          (team) => team.homeAway === "home"
+        ).team;
+        const awayTeam = event.competitions[0].competitors.find(
+          (team) => team.homeAway === "away"
+        ).team;
+        const odds = event.odds ? event.odds[0] : null;
+
+        const game = {
+          home: {
+            abbreviation: homeTeam.abbreviation,
+            name: homeTeam.displayName,
+            spread: odds ? odds.homeTeamOdds.spread : null,
+          },
+          away: {
+            abbreviation: awayTeam.abbreviation,
+            name: awayTeam.displayName,
+            spread: odds ? odds.awayTeamOdds.spread : null,
+          },
+          winner: null, // Initially set to null
+        };
+
+        weeklyGames[weekNumber].push(game);
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching the NFL games:", error);
+  }
 };
+
+fetchGames();
 
 export const getGamesForWeek = (week) => {
   return weeklyGames[week] || [];
