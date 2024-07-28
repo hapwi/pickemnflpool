@@ -262,16 +262,16 @@ const ProfilePage = ({ userName }) => {
             <table className="w-full table-auto">
               <thead className="bg-gray-700">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Week
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Correct
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Win Rate
                   </th>
                   <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
@@ -287,27 +287,27 @@ const ProfilePage = ({ userName }) => {
                         className="hover:bg-gray-750 transition-colors cursor-pointer"
                         onClick={() => toggleWeekExpansion(week.week)}
                       >
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-300">
                             Week {week.week}
                           </span>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
                           <span className="text-sm text-gray-300">
                             {week.correctPicks}
                           </span>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
                           <span className="text-sm text-gray-300">
                             {week.totalPicks}
                           </span>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
                           <span className="text-sm text-gray-300">
                             {week.winRate.toFixed(2)}%
                           </span>
                         </td>
-                        <td className="px-2 py-3 whitespace-nowrap text-center">
+                        <td className="px-2 py-3 text-center whitespace-nowrap">
                           {expandedWeeks.includes(week.week) ? (
                             <ChevronUp
                               className="text-blue-400 inline-block"
