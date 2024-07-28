@@ -52,20 +52,20 @@ const StatCard = ({ icon: Icon, title, value }) => (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.3 }}
-    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-center h-full"
+    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between h-full"
   >
-    <div className="rounded-full p-2 mr-3 bg-gray-700">
-      <Icon size={20} className="text-blue-400" />
+    <div className="rounded-full p-2 bg-gray-700 flex-shrink-0">
+      <Icon size={24} className="text-blue-400" />
     </div>
-    <div className="flex flex-col items-center">
-      <h3 className="text-sm font-semibold text-gray-400">{title}</h3>
+    <div className="flex flex-col items-end">
+      <h3 className="text-sm font-semibold text-gray-400 mb-1">{title}</h3>
       <p className="text-xl font-bold text-gray-100">{value}</p>
     </div>
   </motion.div>
 );
 
 const StatsGrid = ({ userStats }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
     <StatCard
       icon={Award}
       title="Correct Picks"
