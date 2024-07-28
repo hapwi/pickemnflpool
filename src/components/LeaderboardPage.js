@@ -7,10 +7,15 @@ import {
   Loader2,
   Check,
   X,
+  Lock,
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
-import { isWeekAvailable, getLatestAvailableWeek } from "./weekDates";
+import weekDates, {
+  isWeekAvailable,
+  isWeekViewable,
+  getLatestAvailableWeek,
+} from "./weekDates";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -81,16 +86,13 @@ const LeaderboardPage = () => {
 
   const fetchLeaderboardData = useCallback(
     async (week) => {
-      const latestAvailableWeek = getLatestAvailableWeek();
-      const weekToFetch = isWeekAvailable(week) ? week : latestAvailableWeek;
-
-      if (weekToFetch !== week) {
-        setSelectedWeek(weekToFetch);
+      if (!isWeekAvailable(week)) {
+        const latestAvailableWeek = getLatestAvailableWeek();
+        setSelectedWeek(latestAvailableWeek);
+        week = latestAvailableWeek;
       }
 
-      const cachedData = sessionStorage.getItem(
-        `leaderboardData_${weekToFetch}`
-      );
+      const cachedData = sessionStorage.getItem(`leaderboardData_${week}`);
       if (cachedData) {
         const data = JSON.parse(cachedData);
         setLeaderboard(data.leaderboard);
@@ -107,7 +109,7 @@ const LeaderboardPage = () => {
         const data = await response.json();
         if (data.values) {
           const leaderboardData = data.values.slice(1); // Exclude header row
-          const weeklyWinsData = await fetchWeeklyWinData(weekToFetch);
+          const weeklyWinsData = await fetchWeeklyWinData(week);
 
           setLeaderboard(leaderboardData);
           setWeeklyWins(weeklyWinsData);
@@ -118,7 +120,7 @@ const LeaderboardPage = () => {
           };
 
           sessionStorage.setItem(
-            `leaderboardData_${weekToFetch}`,
+            `leaderboardData_${week}`,
             JSON.stringify(fetchedData)
           );
 
@@ -137,7 +139,7 @@ const LeaderboardPage = () => {
   }, [selectedWeek, fetchLeaderboardData]);
 
   const fetchPicksData = async (username) => {
-    if (!isWeekAvailable(selectedWeek)) {
+    if (!isWeekViewable(selectedWeek)) {
       return;
     }
     try {
@@ -153,10 +155,6 @@ const LeaderboardPage = () => {
           ...prevPicks,
           [username]: userPicks,
         }));
-        console.log(
-          `Picks data for ${username} for week ${selectedWeek}:`,
-          userPicks
-        );
       }
     } catch (error) {
       console.error("Error fetching picks data:", error);
@@ -164,6 +162,10 @@ const LeaderboardPage = () => {
   };
 
   const handleRowClick = (username) => {
+    if (!isWeekViewable(selectedWeek)) {
+      // Optionally show a message that the week is not viewable yet
+      return;
+    }
     if (expandedRows.includes(username)) {
       setExpandedRows(expandedRows.filter((user) => user !== username));
     } else {
@@ -179,7 +181,7 @@ const LeaderboardPage = () => {
       setExpandedRows([]);
       setPicks({});
     } else {
-      setError(`Week ${weekNumber} is not available yet.`);
+      console.log(`Week ${weekNumber} is not available yet.`);
     }
   };
 
@@ -270,10 +272,6 @@ const LeaderboardPage = () => {
     );
   }
 
-  const availableWeeks = Object.keys(weekRanges).filter((week) =>
-    isWeekAvailable(Number(week))
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
@@ -288,11 +286,16 @@ const LeaderboardPage = () => {
               value={selectedWeek}
               onChange={(e) => handleWeekChange(e.target.value)}
             >
-              {availableWeeks.map((week) => (
-                <option key={week} value={week}>
-                  Week {week}
-                </option>
-              ))}
+              {Object.keys(weekDates).map((week) => {
+                const isAvailable = isWeekAvailable(Number(week));
+                console.log(`Week ${week} available:`, isAvailable);
+                return (
+                  <option key={week} value={week} disabled={!isAvailable}>
+                    Week {week}
+                    {!isAvailable ? " (Not Available)" : ""}
+                  </option>
+                );
+              })}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
               <Calendar className="h-5 w-5" />
@@ -352,32 +355,41 @@ const LeaderboardPage = () => {
                       </span>
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      {expandedRows.includes(row[0]) ? (
-                        <ChevronUp
-                          className="text-blue-400 inline-block"
-                          size={20}
-                        />
+                      {isWeekViewable(selectedWeek) ? (
+                        expandedRows.includes(row[0]) ? (
+                          <ChevronUp
+                            className="text-blue-400 inline-block"
+                            size={20}
+                          />
+                        ) : (
+                          <ChevronDown
+                            className="text-blue-400 inline-block"
+                            size={20}
+                          />
+                        )
                       ) : (
-                        <ChevronDown
-                          className="text-blue-400 inline-block"
+                        <Lock
+                          className="text-gray-400 inline-block"
                           size={20}
                         />
                       )}
                     </td>
                   </motion.tr>
                   <AnimatePresence>
-                    {expandedRows.includes(row[0]) && picks[row[0]] && (
-                      <motion.tr
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <td colSpan="5" className="px-3 py-4 bg-gray-850">
-                          {renderPicks(picks[row[0]])}
-                        </td>
-                      </motion.tr>
-                    )}
+                    {expandedRows.includes(row[0]) &&
+                      picks[row[0]] &&
+                      isWeekViewable(selectedWeek) && (
+                        <motion.tr
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <td colSpan="5" className="px-3 py-4 bg-gray-850">
+                            {renderPicks(picks[row[0]])}
+                          </td>
+                        </motion.tr>
+                      )}
                   </AnimatePresence>
                 </React.Fragment>
               ))}
