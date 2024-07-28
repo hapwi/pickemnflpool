@@ -147,12 +147,12 @@ const LeaderboardPage = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-gray-800 p-2 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
+        className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
       >
-        <h3 className="text-base sm:text-xl font-bold text-blue-300 mb-2 sm:mb-4 text-center">
+        <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
           Week {selectedWeek} Picks for {picksData[0][0]}
         </h3>
-        <div className="grid grid-cols-2 gap-1 sm:gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {picks.map((pick, index) => {
             const isCorrect = winners.includes(pick.trim());
             return (
@@ -161,7 +161,7 @@ const LeaderboardPage = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: index * 0.05 }}
-                className={`bg-gray-700 rounded-lg p-1 sm:p-2 flex items-center justify-between ${
+                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
                   isCorrect ? "border-green-500" : "border-red-500"
                 } border-2 shadow-md`}
               >
@@ -187,7 +187,7 @@ const LeaderboardPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="mt-4 sm:mt-6 bg-blue-900 rounded-lg p-2 sm:p-4 shadow-lg"
+          className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
         >
           <div className="flex justify-between items-center">
             <span className="text-base sm:text-lg font-semibold text-blue-200">
@@ -214,24 +214,24 @@ const LeaderboardPage = () => {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900">
         <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-red-300 mb-2">Error</h2>
-          <p className="text-red-100">{error}</p>
+          <h2 className="text-2xl font-bold text-red-300 mb-3">Error</h2>
+          <p className="text-lg text-red-100">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold flex items-center">
-            <Trophy className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-yellow-500 mr-3" />
+        <header className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl font-bold flex items-center">
+            <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-500 mr-3" />
             NFL Pick'em Totals
           </h1>
           <div className="relative">
             <select
-              className="appearance-none bg-gray-800 border border-gray-700 text-gray-300 py-2 px-4 pr-10 rounded-lg leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-600 transition-colors duration-200"
+              className="appearance-none bg-gray-800 border border-gray-700 text-gray-300 py-2 px-4 pr-8 rounded-lg text-base leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-600 transition-colors duration-200"
               value={selectedWeek}
               onChange={(e) => handleWeekChange(e.target.value)}
             >
@@ -251,19 +251,19 @@ const LeaderboardPage = () => {
           <table className="w-full table-auto text-center">
             <thead className="bg-gray-700">
               <tr>
-                <th className="w-[15%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Rank
                 </th>
-                <th className="w-[35%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Username
                 </th>
-                <th className="w-[25%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Total
                 </th>
-                <th className="w-[20%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Week
                 </th>
-                <th className="w-[5%] px-1 sm:px-2 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
+                <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -273,37 +273,39 @@ const LeaderboardPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="transition-colors hover:bg-gray-700 cursor-pointer"
+                    className="transition-colors"
                     onClick={() => handleRowClick(row[0])}
                   >
-                    <td className="w-[15%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
-                      <span className="inline-flex items-center justify-center w-6 sm:w-8 h-6 sm:h-8 text-xs sm:text-sm leading-5 font-semibold rounded-full bg-blue-900 text-blue-200">
+                    <td className="px-3 py-3 whitespace-nowrap text-center">
+                      <span className="inline-flex items-center justify-center w-7 h-7 text-sm leading-5 font-semibold rounded-full bg-blue-900 text-blue-200">
                         {index + 1}
                       </span>
                     </td>
-                    <td className="w-[35%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center space-x-2 sm:space-x-3">
-                        <span className="truncate font-medium">{row[0]}</span>
+                    <td className="px-3 py-3 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="truncate font-medium text-sm sm:text-base">
+                          {row[0]}
+                        </span>
                       </div>
                     </td>
-                    <td className="w-[25%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center text-base sm:text-lg font-semibold">
+                    <td className="px-3 py-3 whitespace-nowrap text-center text-base sm:text-lg font-semibold">
                       {row[1]}
                     </td>
-                    <td className="w-[20%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
+                    <td className="px-3 py-3 whitespace-nowrap text-center">
                       <span className="text-base sm:text-lg font-medium">
                         {weeklyWins[index] || 0}
                       </span>
                     </td>
-                    <td className="w-[5%] px-1 sm:px-2 py-2 sm:py-4 whitespace-nowrap text-center">
+                    <td className="px-2 py-3 whitespace-nowrap text-center">
                       {expandedRow === row[0] ? (
                         <ChevronUp
                           className="text-blue-400 inline-block"
-                          size={16}
+                          size={20}
                         />
                       ) : (
                         <ChevronDown
                           className="text-blue-400 inline-block"
-                          size={16}
+                          size={20}
                         />
                       )}
                     </td>
@@ -316,10 +318,7 @@ const LeaderboardPage = () => {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <td
-                          colSpan="5"
-                          className="px-2 sm:px-4 py-4 bg-gray-850"
-                        >
+                        <td colSpan="5" className="px-3 py-4 bg-gray-850">
                           {renderPicks(picks)}
                         </td>
                       </motion.tr>
