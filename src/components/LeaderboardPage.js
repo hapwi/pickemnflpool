@@ -152,7 +152,7 @@ const LeaderboardPage = () => {
         <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
           Week {selectedWeek} Picks for {picksData[0][0]}
         </h3>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
           {picks.map((pick, index) => {
             const isCorrect = winners.includes(pick.trim());
             return (
