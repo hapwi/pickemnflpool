@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
+import { isWeekAvailable, getLatestAvailableWeek } from "./weekDates";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -105,8 +106,13 @@ const ProfilePage = ({ userName }) => {
       );
       const totalData = await totalResponse.json();
 
+      const latestWeek = getLatestAvailableWeek();
+      const availableWeeks = Object.keys(weekRanges).filter((week) =>
+        isWeekAvailable(parseInt(week))
+      );
+
       const weeklyData = await Promise.all(
-        Object.keys(weekRanges).map(async (week) => {
+        availableWeeks.map(async (week) => {
           const response = await fetch(
             `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${week}!A1:R50?key=${apiKey}`
           );
@@ -117,11 +123,16 @@ const ProfilePage = ({ userName }) => {
       if (totalData.values) {
         const userRow = totalData.values.find((row) => row[0] === userName);
         if (userRow) {
-          const totalCorrectPicks = parseInt(userRow[1]) || 0;
-          const weeklyPicks = userRow.slice(2).map((val) => parseInt(val) || 0);
+          const weeklyPicks = userRow
+            .slice(2, latestWeek + 2)
+            .map((val) => parseInt(val) || 0);
+          const totalCorrectPicks = weeklyPicks.reduce(
+            (sum, picks) => sum + picks,
+            0
+          );
           const rank = totalData.values.findIndex((row) => row[0] === userName);
 
-          const history = Object.keys(weekRanges).map((week, index) => {
+          const history = availableWeeks.map((week, index) => {
             const weekData = weeklyData[index].values;
             const userWeekRow = weekData.find((row) => row[0] === userName);
             const weekWinners = weeklyWinners[week] || [];
@@ -138,7 +149,8 @@ const ProfilePage = ({ userName }) => {
               week: parseInt(week),
               correctPicks,
               totalPicks: picks.length,
-              winRate: (correctPicks / picks.length) * 100,
+              winRate:
+                picks.length > 0 ? (correctPicks / picks.length) * 100 : 0,
               picks,
               winners: weekWinners,
               finalScorePrediction,
@@ -149,17 +161,17 @@ const ProfilePage = ({ userName }) => {
             (sum, week) => sum + week.totalPicks,
             0
           );
-          const winPercentage = (
-            (totalCorrectPicks / totalPicks) *
-            100
-          ).toFixed(2);
+          const winPercentage =
+            totalPicks > 0
+              ? ((totalCorrectPicks / totalPicks) * 100).toFixed(2)
+              : "0.00";
 
           const fetchedData = {
             userStats: {
               totalCorrectPicks,
               totalPicks,
               winPercentage,
-              rank,
+              rank: rank + 1,
             },
             pickHistory: history,
           };
@@ -258,8 +270,8 @@ const ProfilePage = ({ userName }) => {
   const reversedPickHistory = [...pickHistory].reverse();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6 flex flex-col items-center justify-center">
-      <div className="w-full max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
+      <div className="w-full max-w-4xl mx-auto flex flex-col">
         <header className="text-center mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center">
             <User className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 mr-3" />
@@ -269,90 +281,92 @@ const ProfilePage = ({ userName }) => {
 
         {userStats && <StatsGrid userStats={userStats} />}
 
-        <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
-          <div className="overflow-hidden">
-            <table className="w-full table-auto">
-              <thead className="bg-gray-700">
-                <tr>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Week
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Correct
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Win Rate
-                  </th>
-                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {reversedPickHistory.map((week, index) => (
-                  <React.Fragment key={week.week}>
-                    <motion.tr
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className={`hover:bg-gray-750 transition-colors cursor-pointer ${
-                        expandedWeeks.includes(week.week) ? "bg-gray-700" : ""
-                      }`}
-                      onClick={() => toggleWeekExpansion(week.week)}
-                    >
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-300">
-                          Week {week.week}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className="text-sm text-gray-300">
-                          {week.correctPicks}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className="text-sm text-gray-300">
-                          {week.totalPicks}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-center whitespace-nowrap">
-                        <span className="text-sm text-gray-300">
-                          {week.winRate.toFixed(2)}%
-                        </span>
-                      </td>
-                      <td className="px-2 py-3 text-center whitespace-nowrap">
-                        {expandedWeeks.includes(week.week) ? (
-                          <ChevronUp
-                            className="text-blue-400 inline-block"
-                            size={20}
-                          />
-                        ) : (
-                          <ChevronDown
-                            className="text-blue-400 inline-block"
-                            size={20}
-                          />
+        <div className="flex-grow mt-6">
+          <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
+            <div className="overflow-hidden">
+              <table className="w-full table-auto">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Week
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Correct
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Win Rate
+                    </th>
+                    <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {reversedPickHistory.map((week, index) => (
+                    <React.Fragment key={week.week}>
+                      <motion.tr
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className={`hover:bg-gray-750 transition-colors cursor-pointer ${
+                          expandedWeeks.includes(week.week) ? "bg-gray-700" : ""
+                        }`}
+                        onClick={() => toggleWeekExpansion(week.week)}
+                      >
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-300">
+                            Week {week.week}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                          <span className="text-sm text-gray-300">
+                            {week.correctPicks}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                          <span className="text-sm text-gray-300">
+                            {week.totalPicks}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                          <span className="text-sm text-gray-300">
+                            {week.winRate.toFixed(2)}%
+                          </span>
+                        </td>
+                        <td className="px-2 py-3 text-center whitespace-nowrap">
+                          {expandedWeeks.includes(week.week) ? (
+                            <ChevronUp
+                              className="text-blue-400 inline-block"
+                              size={20}
+                            />
+                          ) : (
+                            <ChevronDown
+                              className="text-blue-400 inline-block"
+                              size={20}
+                            />
+                          )}
+                        </td>
+                      </motion.tr>
+                      <AnimatePresence>
+                        {expandedWeeks.includes(week.week) && (
+                          <motion.tr
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <td colSpan="5" className="px-3 py-4 bg-gray-750">
+                              {renderPicks(week)}
+                            </td>
+                          </motion.tr>
                         )}
-                      </td>
-                    </motion.tr>
-                    <AnimatePresence>
-                      {expandedWeeks.includes(week.week) && (
-                        <motion.tr
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <td colSpan="5" className="px-3 py-4 bg-gray-750">
-                            {renderPicks(week)}
-                          </td>
-                        </motion.tr>
-                      )}
-                    </AnimatePresence>
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+                      </AnimatePresence>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

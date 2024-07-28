@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
+import { isWeekAvailable, getLatestAvailableWeek } from "./weekDates";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -46,7 +47,7 @@ const weekRanges = {
 
 const LeaderboardPage = () => {
   const [leaderboard, setLeaderboard] = useState([]);
-  const [selectedWeek, setSelectedWeek] = useState(18);
+  const [selectedWeek, setSelectedWeek] = useState(getLatestAvailableWeek());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [weeklyWins, setWeeklyWins] = useState([]);
@@ -54,6 +55,9 @@ const LeaderboardPage = () => {
   const [picks, setPicks] = useState({});
 
   const fetchWeeklyWinData = useCallback(async (week) => {
+    if (!isWeekAvailable(week)) {
+      return [];
+    }
     const range = weekRanges[week];
     console.log(
       `Fetching weekly win data for week ${week} with range ${range}`
@@ -77,7 +81,16 @@ const LeaderboardPage = () => {
 
   const fetchLeaderboardData = useCallback(
     async (week) => {
-      const cachedData = sessionStorage.getItem(`leaderboardData_${week}`);
+      const latestAvailableWeek = getLatestAvailableWeek();
+      const weekToFetch = isWeekAvailable(week) ? week : latestAvailableWeek;
+
+      if (weekToFetch !== week) {
+        setSelectedWeek(weekToFetch);
+      }
+
+      const cachedData = sessionStorage.getItem(
+        `leaderboardData_${weekToFetch}`
+      );
       if (cachedData) {
         const data = JSON.parse(cachedData);
         setLeaderboard(data.leaderboard);
@@ -94,7 +107,7 @@ const LeaderboardPage = () => {
         const data = await response.json();
         if (data.values) {
           const leaderboardData = data.values.slice(1); // Exclude header row
-          const weeklyWinsData = await fetchWeeklyWinData(week);
+          const weeklyWinsData = await fetchWeeklyWinData(weekToFetch);
 
           setLeaderboard(leaderboardData);
           setWeeklyWins(weeklyWinsData);
@@ -105,7 +118,7 @@ const LeaderboardPage = () => {
           };
 
           sessionStorage.setItem(
-            `leaderboardData_${week}`,
+            `leaderboardData_${weekToFetch}`,
             JSON.stringify(fetchedData)
           );
 
@@ -124,6 +137,9 @@ const LeaderboardPage = () => {
   }, [selectedWeek, fetchLeaderboardData]);
 
   const fetchPicksData = async (username) => {
+    if (!isWeekAvailable(selectedWeek)) {
+      return;
+    }
     try {
       const response = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${selectedWeek}!A1:R50?key=${apiKey}`
@@ -157,9 +173,14 @@ const LeaderboardPage = () => {
   };
 
   const handleWeekChange = (value) => {
-    setSelectedWeek(Number(value));
-    setExpandedRows([]);
-    setPicks({});
+    const weekNumber = Number(value);
+    if (isWeekAvailable(weekNumber)) {
+      setSelectedWeek(weekNumber);
+      setExpandedRows([]);
+      setPicks({});
+    } else {
+      setError(`Week ${weekNumber} is not available yet.`);
+    }
   };
 
   const renderPicks = (picksData) => {
@@ -171,9 +192,9 @@ const LeaderboardPage = () => {
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
+        exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.3 }}
         className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
       >
@@ -249,6 +270,10 @@ const LeaderboardPage = () => {
     );
   }
 
+  const availableWeeks = Object.keys(weekRanges).filter((week) =>
+    isWeekAvailable(Number(week))
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
@@ -263,7 +288,7 @@ const LeaderboardPage = () => {
               value={selectedWeek}
               onChange={(e) => handleWeekChange(e.target.value)}
             >
-              {Object.keys(weeklyWinners).map((week) => (
+              {availableWeeks.map((week) => (
                 <option key={week} value={week}>
                   Week {week}
                 </option>
