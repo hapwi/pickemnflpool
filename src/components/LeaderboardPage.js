@@ -41,7 +41,7 @@ const LeaderboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [weeklyWins, setWeeklyWins] = useState([]);
-  const [expandedRow, setExpandedRow] = useState(null);
+  const [expandedRows, setExpandedRows] = useState([]);
   const [picks, setPicks] = useState([]);
 
   const fetchWeeklyWinData = useCallback(async () => {
@@ -107,7 +107,10 @@ const LeaderboardPage = () => {
         const userPicks = data.values
           .slice(1)
           .filter((row) => row[0] === username);
-        setPicks(userPicks);
+        setPicks((prevPicks) => ({
+          ...prevPicks,
+          [username]: userPicks,
+        }));
         console.log(
           `Picks data for ${username} for week ${selectedWeek}:`,
           userPicks
@@ -119,18 +122,17 @@ const LeaderboardPage = () => {
   };
 
   const handleRowClick = (username) => {
-    if (expandedRow === username) {
-      setExpandedRow(null);
-      setPicks([]);
+    if (expandedRows.includes(username)) {
+      setExpandedRows(expandedRows.filter((user) => user !== username));
     } else {
-      setExpandedRow(username);
+      setExpandedRows([...expandedRows, username]);
       fetchPicksData(username);
     }
   };
 
   const handleWeekChange = (value) => {
     setSelectedWeek(Number(value));
-    setExpandedRow(null);
+    setExpandedRows([]);
     setPicks([]);
   };
 
@@ -297,7 +299,7 @@ const LeaderboardPage = () => {
                       </span>
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
-                      {expandedRow === row[0] ? (
+                      {expandedRows.includes(row[0]) ? (
                         <ChevronUp
                           className="text-blue-400 inline-block"
                           size={20}
@@ -311,7 +313,7 @@ const LeaderboardPage = () => {
                     </td>
                   </motion.tr>
                   <AnimatePresence>
-                    {expandedRow === row[0] && picks.length > 0 && (
+                    {expandedRows.includes(row[0]) && picks[row[0]] && (
                       <motion.tr
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -319,7 +321,7 @@ const LeaderboardPage = () => {
                         transition={{ duration: 0.3 }}
                       >
                         <td colSpan="5" className="px-3 py-4 bg-gray-850">
-                          {renderPicks(picks)}
+                          {renderPicks(picks[row[0]])}
                         </td>
                       </motion.tr>
                     )}
