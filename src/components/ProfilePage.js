@@ -255,6 +255,8 @@ const ProfilePage = ({ userName }) => {
     );
   };
 
+  const reversedPickHistory = [...pickHistory].reverse();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
@@ -288,12 +290,12 @@ const ProfilePage = ({ userName }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {pickHistory.map((week) => (
+                {reversedPickHistory.map((week, index) => (
                   <React.Fragment key={week.week}>
                     <motion.tr
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: week.week * 0.05 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
                       className={`hover:bg-gray-750 transition-colors cursor-pointer ${
                         expandedWeeks.includes(week.week) ? "bg-gray-700" : ""
                       }`}
