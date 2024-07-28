@@ -5,11 +5,11 @@ import {
   Trophy,
   Calendar,
   Loader2,
-  User,
   Check,
   X,
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
+import { motion, AnimatePresence } from "framer-motion";
 
 const apiKey = "AIzaSyCTIOtXB0RDa5Y5gubbRn328WIrqHwemrc";
 const spreadsheetId = "1iTNStqnadp4ZyR7MRkSmvX5WeialS4WST6Yy-Qv8Reo";
@@ -130,53 +130,75 @@ const LeaderboardPage = () => {
 
   const handleWeekChange = (value) => {
     setSelectedWeek(Number(value));
-    setExpandedRow(null); // Close any expanded rows when changing weeks
-    setPicks([]); // Clear picks when changing weeks
-    console.log(`Selected week changed to: ${value}`);
+    setExpandedRow(null);
+    setPicks([]);
   };
 
   const renderPicks = (picksData) => {
     if (!picksData || picksData.length === 0) return null;
 
     const picks = picksData[0].slice(1).filter((pick) => pick.trim() !== "");
-    const total = picks.pop(); // Remove the last item (total)
+    const total = picks.pop();
     const winners = weeklyWinners[selectedWeek] || [];
 
-    console.log(`Rendering picks for week ${selectedWeek}:`, picks);
-    console.log(`Winners for week ${selectedWeek}:`, winners);
-
     return (
-      <div className="bg-gray-800 p-4 rounded-lg shadow-lg max-w-3xl mx-auto">
-        <h3 className="text-xl font-bold text-blue-300 mb-2 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-800 p-2 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
+      >
+        <h3 className="text-base sm:text-xl font-bold text-blue-300 mb-2 sm:mb-4 text-center">
           Week {selectedWeek} Picks for {picksData[0][0]}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1 sm:gap-2">
           {picks.map((pick, index) => {
             const isCorrect = winners.includes(pick.trim());
             return (
-              <div
+              <motion.div
                 key={index}
-                className="bg-gray-700 rounded-lg p-2 flex items-center justify-between"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+                className={`bg-gray-700 rounded-lg p-1 sm:p-2 flex items-center justify-between ${
+                  isCorrect ? "border-green-500" : "border-red-500"
+                } border-2 shadow-md`}
               >
-                <span className="text-gray-300 text-sm truncate">
+                <span className="text-sm sm:text-base font-medium truncate flex-grow text-gray-200">
                   {pick.trim()}
                 </span>
-                {isCorrect ? (
-                  <Check className="text-green-500 h-4 w-4" />
-                ) : (
-                  <X className="text-red-500 h-4 w-4" />
-                )}
-              </div>
+                <div
+                  className={`flex-shrink-0 ml-1 sm:ml-2 ${
+                    isCorrect ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  {isCorrect ? (
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                  ) : (
+                    <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                </div>
+              </motion.div>
             );
           })}
         </div>
-        <div className="mt-4 flex justify-between items-center bg-blue-900 rounded-lg p-2">
-          <span className="text-lg font-semibold text-blue-200">
-            Total Score
-          </span>
-          <span className="text-xl font-bold text-blue-100">{total}</span>
-        </div>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="mt-4 sm:mt-6 bg-blue-900 rounded-lg p-2 sm:p-4 shadow-lg"
+        >
+          <div className="flex justify-between items-center">
+            <span className="text-base sm:text-lg font-semibold text-blue-200">
+              Total Score
+            </span>
+            <span className="text-xl sm:text-2xl font-bold text-blue-100">
+              {total}
+            </span>
+          </div>
+        </motion.div>
+      </motion.div>
     );
   };
 
@@ -191,7 +213,7 @@ const LeaderboardPage = () => {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900">
-        <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-4">
+        <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
           <h2 className="text-2xl font-bold text-red-300 mb-2">Error</h2>
           <p className="text-red-100">{error}</p>
         </div>
@@ -200,16 +222,16 @@ const LeaderboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-2 sm:p-4 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-8 space-y-4 sm:space-y-0 text-center">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold flex items-center justify-center">
-            <Trophy className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-yellow-500 mr-2 sm:mr-3" />
+        <header className="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold flex items-center">
+            <Trophy className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-yellow-500 mr-3" />
             NFL Pick'em Totals
           </h1>
           <div className="relative">
             <select
-              className="appearance-none bg-gray-800 border border-gray-700 text-gray-300 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-600"
+              className="appearance-none bg-gray-800 border border-gray-700 text-gray-300 py-2 px-4 pr-10 rounded-lg leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-600 transition-colors duration-200"
               value={selectedWeek}
               onChange={(e) => handleWeekChange(e.target.value)}
             >
@@ -225,71 +247,84 @@ const LeaderboardPage = () => {
           </div>
         </header>
 
-        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
-          <table className="w-full table-fixed text-center">
+        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
+          <table className="w-full table-auto text-center">
             <thead className="bg-gray-700">
               <tr>
-                <th className="w-1/12 px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="w-[15%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Rank
                 </th>
-                <th className="w-5/12 sm:w-4/12 px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="w-[35%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Username
                 </th>
-                <th className="w-3/12 px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="w-[25%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Total
                 </th>
-                <th className="w-3/12 px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="w-[20%] px-2 sm:px-4 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Week
                 </th>
+                <th className="w-[5%] px-1 sm:px-2 py-2 sm:py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {leaderboard.map((row, index) => (
                 <React.Fragment key={index}>
-                  <tr
+                  <motion.tr
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
                     className="transition-colors hover:bg-gray-700 cursor-pointer"
                     onClick={() => handleRowClick(row[0])}
                   >
-                    <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
-                      <span className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 text-xs leading-5 font-semibold rounded-full bg-blue-900 text-blue-200">
+                    <td className="w-[15%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
+                      <span className="inline-flex items-center justify-center w-6 sm:w-8 h-6 sm:h-8 text-xs sm:text-sm leading-5 font-semibold rounded-full bg-blue-900 text-blue-200">
                         {index + 1}
                       </span>
                     </td>
-                    <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center justify-start space-x-2 sm:space-x-3">
-                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
-                        <span className="truncate">{row[0]}</span>
+                    <td className="w-[35%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center space-x-2 sm:space-x-3">
+                        <span className="truncate font-medium">{row[0]}</span>
                       </div>
                     </td>
-                    <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
+                    <td className="w-[25%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center text-base sm:text-lg font-semibold">
                       {row[1]}
                     </td>
-                    <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center justify-center">
-                        <span className="flex-grow text-center">
-                          {weeklyWins[index] || 0}
-                        </span>
-                        {expandedRow === row[0] ? (
-                          <ChevronUp
-                            className="text-blue-400 flex-shrink-0"
-                            size={20}
-                          />
-                        ) : (
-                          <ChevronDown
-                            className="text-blue-400 flex-shrink-0"
-                            size={20}
-                          />
-                        )}
-                      </div>
+                    <td className="w-[20%] px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap text-center">
+                      <span className="text-base sm:text-lg font-medium">
+                        {weeklyWins[index] || 0}
+                      </span>
                     </td>
-                  </tr>
-                  {expandedRow === row[0] && picks.length > 0 && (
-                    <tr>
-                      <td colSpan="4" className="px-2 sm:px-4 py-6 bg-gray-850">
-                        {renderPicks(picks)}
-                      </td>
-                    </tr>
-                  )}
+                    <td className="w-[5%] px-1 sm:px-2 py-2 sm:py-4 whitespace-nowrap text-center">
+                      {expandedRow === row[0] ? (
+                        <ChevronUp
+                          className="text-blue-400 inline-block"
+                          size={16}
+                        />
+                      ) : (
+                        <ChevronDown
+                          className="text-blue-400 inline-block"
+                          size={16}
+                        />
+                      )}
+                    </td>
+                  </motion.tr>
+                  <AnimatePresence>
+                    {expandedRow === row[0] && picks.length > 0 && (
+                      <motion.tr
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <td
+                          colSpan="5"
+                          className="px-2 sm:px-4 py-4 bg-gray-850"
+                        >
+                          {renderPicks(picks)}
+                        </td>
+                      </motion.tr>
+                    )}
+                  </AnimatePresence>
                 </React.Fragment>
               ))}
             </tbody>
