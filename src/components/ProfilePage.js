@@ -258,10 +258,10 @@ const ProfilePage = ({ userName }) => {
   const reversedPickHistory = [...pickHistory].reverse();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold flex items-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6 flex flex-col items-center justify-center">
+      <div className="w-full max-w-4xl">
+        <header className="text-center mb-6">
+          <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center">
             <User className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 mr-3" />
             {userName}'s Profile
           </h1>
