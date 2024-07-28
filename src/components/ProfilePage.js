@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -45,6 +46,40 @@ const weekRanges = {
   17: "S",
   18: "T",
 };
+
+const StatCard = ({ icon: Icon, title, value }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.3 }}
+    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center mb-4 sm:mb-0"
+  >
+    <div className="rounded-full p-2 mr-3 bg-gray-700">
+      <Icon size={20} className="text-blue-400" />
+    </div>
+    <div>
+      <h3 className="text-sm font-semibold text-gray-400">{title}</h3>
+      <p className="text-lg font-bold text-gray-100">{value}</p>
+    </div>
+  </motion.div>
+);
+
+const StatsGrid = ({ userStats }) => (
+  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <StatCard
+      icon={Award}
+      title="Correct Picks"
+      value={userStats.totalCorrectPicks}
+    />
+    <StatCard icon={User} title="Total Picks" value={userStats.totalPicks} />
+    <StatCard
+      icon={Percent}
+      title="Win %"
+      value={`${userStats.winPercentage}%`}
+    />
+    <StatCard icon={TrendingUp} title="Ranking" value={`#${userStats.rank}`} />
+  </div>
+);
 
 const ProfilePage = ({ userName }) => {
   const [userStats, setUserStats] = useState(null);
@@ -174,27 +209,23 @@ const ProfilePage = ({ userName }) => {
     );
   }
 
-  const StatCard = ({ icon: Icon, title, value }) => (
-    <div className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center mb-4 sm:mb-0">
-      <div className="rounded-full p-2 mr-3 bg-gray-700">
-        <Icon size={20} className="text-blue-400" />
-      </div>
-      <div>
-        <h3 className="text-sm font-semibold text-gray-400">{title}</h3>
-        <p className="text-lg font-bold text-gray-100">{value}</p>
-      </div>
-    </div>
-  );
-
   const renderPicks = (weekData) => {
     return (
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
           {weekData.picks.map((pick, index) => {
             const isCorrect = weekData.winners.includes(pick.trim());
             return (
-              <div
+              <motion.div
                 key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
                 className={`bg-gray-700 rounded-lg p-2 flex items-center justify-between ${
                   isCorrect ? "border-green-500" : "border-red-500"
                 } border-2 shadow-md`}
@@ -209,7 +240,7 @@ const ProfilePage = ({ userName }) => {
                     <X className="h-4 w-4" />
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -220,7 +251,7 @@ const ProfilePage = ({ userName }) => {
             </span>
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -234,31 +265,10 @@ const ProfilePage = ({ userName }) => {
           </h1>
         </header>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard
-            icon={Award}
-            title="Correct Picks"
-            value={userStats.totalCorrectPicks}
-          />
-          <StatCard
-            icon={User}
-            title="Total Picks"
-            value={userStats.totalPicks}
-          />
-          <StatCard
-            icon={Percent}
-            title="Win %"
-            value={`${userStats.winPercentage}%`}
-          />
-          <StatCard
-            icon={TrendingUp}
-            title="Ranking"
-            value={`#${userStats.rank}`}
-          />
-        </div>
+        {userStats && <StatsGrid userStats={userStats} />}
 
         <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-hidden">
             <table className="w-full table-auto">
               <thead className="bg-gray-700">
                 <tr>
@@ -278,58 +288,67 @@ const ProfilePage = ({ userName }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {pickHistory
-                  .slice()
-                  .reverse()
-                  .map((week) => (
-                    <React.Fragment key={week.week}>
-                      <tr
-                        className="hover:bg-gray-750 transition-colors cursor-pointer"
-                        onClick={() => toggleWeekExpansion(week.week)}
-                      >
-                        <td className="px-3 py-3 text-center whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-300">
-                            Week {week.week}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center whitespace-nowrap">
-                          <span className="text-sm text-gray-300">
-                            {week.correctPicks}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center whitespace-nowrap">
-                          <span className="text-sm text-gray-300">
-                            {week.totalPicks}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center whitespace-nowrap">
-                          <span className="text-sm text-gray-300">
-                            {week.winRate.toFixed(2)}%
-                          </span>
-                        </td>
-                        <td className="px-2 py-3 text-center whitespace-nowrap">
-                          {expandedWeeks.includes(week.week) ? (
-                            <ChevronUp
-                              className="text-blue-400 inline-block"
-                              size={20}
-                            />
-                          ) : (
-                            <ChevronDown
-                              className="text-blue-400 inline-block"
-                              size={20}
-                            />
-                          )}
-                        </td>
-                      </tr>
+                {pickHistory.map((week) => (
+                  <React.Fragment key={week.week}>
+                    <motion.tr
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: week.week * 0.05 }}
+                      className={`hover:bg-gray-750 transition-colors cursor-pointer ${
+                        expandedWeeks.includes(week.week) ? "bg-gray-700" : ""
+                      }`}
+                      onClick={() => toggleWeekExpansion(week.week)}
+                    >
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        <span className="text-sm font-medium text-gray-300">
+                          Week {week.week}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        <span className="text-sm text-gray-300">
+                          {week.correctPicks}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        <span className="text-sm text-gray-300">
+                          {week.totalPicks}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        <span className="text-sm text-gray-300">
+                          {week.winRate.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 text-center whitespace-nowrap">
+                        {expandedWeeks.includes(week.week) ? (
+                          <ChevronUp
+                            className="text-blue-400 inline-block"
+                            size={20}
+                          />
+                        ) : (
+                          <ChevronDown
+                            className="text-blue-400 inline-block"
+                            size={20}
+                          />
+                        )}
+                      </td>
+                    </motion.tr>
+                    <AnimatePresence>
                       {expandedWeeks.includes(week.week) && (
-                        <tr className="transition-all duration-300 ease-in-out">
+                        <motion.tr
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
                           <td colSpan="5" className="px-3 py-4 bg-gray-750">
                             {renderPicks(week)}
                           </td>
-                        </tr>
+                        </motion.tr>
                       )}
-                    </React.Fragment>
-                  ))}
+                    </AnimatePresence>
+                  </React.Fragment>
+                ))}
               </tbody>
             </table>
           </div>

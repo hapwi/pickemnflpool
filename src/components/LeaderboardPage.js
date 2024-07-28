@@ -301,7 +301,9 @@ const LeaderboardPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="transition-colors"
+                    className={`transition-colors cursor-pointer ${
+                      expandedRows.includes(row[0]) ? "bg-gray-700" : ""
+                    }`}
                     onClick={() => handleRowClick(row[0])}
                   >
                     <td className="px-3 py-3 whitespace-nowrap text-center">
