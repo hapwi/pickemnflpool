@@ -52,14 +52,14 @@ const StatCard = ({ icon: Icon, title, value }) => (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.3 }}
-    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center mb-4 sm:mb-0"
+    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-center h-full"
   >
     <div className="rounded-full p-2 mr-3 bg-gray-700">
       <Icon size={20} className="text-blue-400" />
     </div>
-    <div>
+    <div className="flex flex-col items-center">
       <h3 className="text-sm font-semibold text-gray-400">{title}</h3>
-      <p className="text-lg font-bold text-gray-100">{value}</p>
+      <p className="text-xl font-bold text-gray-100">{value}</p>
     </div>
   </motion.div>
 );
