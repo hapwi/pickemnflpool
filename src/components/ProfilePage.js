@@ -263,7 +263,7 @@ const ProfilePage = ({ userName }) => {
         <header className="text-center mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center">
             <User className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 mr-3" />
-            {userName}'s Profile
+            {userName}'s Stats
           </h1>
         </header>
 
