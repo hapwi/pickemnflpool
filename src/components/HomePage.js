@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Modal from "./Modal";
 import { Calendar, ChevronRight } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
+
+// Clear sessionStorage on initial load if a timestamp is older than a threshold
+const THRESHOLD = 1000; // 1 second
+const now = new Date().getTime();
+const lastVisit = sessionStorage.getItem("lastVisit");
+if (!lastVisit || now - lastVisit > THRESHOLD) {
+  sessionStorage.clear();
+}
+sessionStorage.setItem("lastVisit", now);
 
 const HomePage = () => {
   const [selectedPicks, setSelectedPicks] = useState({});
@@ -14,29 +23,46 @@ const HomePage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [username, setUsername] = useState("");
+  const [isFirstFetch, setIsFirstFetch] = useState(true); // State to check if it's the first fetch
   const teams = getGamesForWeek(currentWeek);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError)
-          throw new Error("Error getting user: " + userError.message);
-        if (!user) throw new Error("No user logged in");
+  const fetchUserData = useCallback(async () => {
+    const cachedData = sessionStorage.getItem("homePageData");
+    if (cachedData) {
+      const data = JSON.parse(cachedData);
+      setUsername(data.username);
+      setIsLoading(false); // Skip showing loading spinner if data is from cache
+      setIsFirstFetch(false);
+      return;
+    }
 
-        setUsername(user.email.split("@")[0]);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError)
+        throw new Error("Error getting user: " + userError.message);
+      if (!user) throw new Error("No user logged in");
 
-    fetchUserData();
+      setUsername(user.email.split("@")[0]);
+      setIsLoading(false);
+      setIsFirstFetch(false);
+
+      const fetchedData = {
+        username: user.email.split("@")[0],
+      };
+      sessionStorage.setItem("homePageData", JSON.stringify(fetchedData));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const handlePickClick = (gameIndex, teamType) => {
     setSelectedPicks((prevPicks) => ({
@@ -142,7 +168,8 @@ const HomePage = () => {
     setIsModalOpen(false);
   };
 
-  if (isLoading) {
+  if (isLoading && isFirstFetch) {
+    // Only show spinner if it's the first fetch
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
@@ -232,10 +259,9 @@ const HomePage = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         title={modalContent.title}
+        message={modalContent.message}
         type={modalContent.type}
-      >
-        {modalContent.message}
-      </Modal>
+      />
     </div>
   );
 };

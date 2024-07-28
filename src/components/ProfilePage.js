@@ -11,7 +11,16 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { weeklyWinners } from "./weeklyWinners"; // Import the weeklyWinners data
+import { weeklyWinners } from "./weeklyWinners";
+
+// Clear sessionStorage on initial load if a timestamp is older than a threshold
+const THRESHOLD = 1000; // 1 second
+const now = new Date().getTime();
+const lastVisit = sessionStorage.getItem("lastVisit");
+if (!lastVisit || now - lastVisit > THRESHOLD) {
+  sessionStorage.clear();
+}
+sessionStorage.setItem("lastVisit", now);
 
 const apiKey = "AIzaSyCTIOtXB0RDa5Y5gubbRn328WIrqHwemrc";
 const spreadsheetId = "1iTNStqnadp4ZyR7MRkSmvX5WeialS4WST6Yy-Qv8Reo";
@@ -45,6 +54,15 @@ const ProfilePage = ({ userName }) => {
   const [expandedWeeks, setExpandedWeeks] = useState([]);
 
   const fetchUserData = useCallback(async () => {
+    const cachedData = sessionStorage.getItem(`profileData_${userName}`);
+    if (cachedData) {
+      const data = JSON.parse(cachedData);
+      setUserStats(data.userStats);
+      setPickHistory(data.pickHistory);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const totalResponse = await fetch(
@@ -101,14 +119,23 @@ const ProfilePage = ({ userName }) => {
             100
           ).toFixed(2);
 
-          setUserStats({
-            totalCorrectPicks,
-            totalPicks,
-            winPercentage,
-            rank,
-          });
+          const fetchedData = {
+            userStats: {
+              totalCorrectPicks,
+              totalPicks,
+              winPercentage,
+              rank,
+            },
+            pickHistory: history,
+          };
 
-          setPickHistory(history);
+          sessionStorage.setItem(
+            `profileData_${userName}`,
+            JSON.stringify(fetchedData)
+          );
+
+          setUserStats(fetchedData.userStats);
+          setPickHistory(fetchedData.pickHistory);
         }
       }
       setIsLoading(false);

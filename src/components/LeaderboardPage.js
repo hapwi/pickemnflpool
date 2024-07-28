@@ -11,6 +11,15 @@ import {
 import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Clear sessionStorage on initial load if a timestamp is older than a threshold
+const THRESHOLD = 1000; // 1 second
+const now = new Date().getTime();
+const lastVisit = sessionStorage.getItem("lastVisit");
+if (!lastVisit || now - lastVisit > THRESHOLD) {
+  sessionStorage.clear();
+}
+sessionStorage.setItem("lastVisit", now);
+
 const apiKey = "AIzaSyCTIOtXB0RDa5Y5gubbRn328WIrqHwemrc";
 const spreadsheetId = "1iTNStqnadp4ZyR7MRkSmvX5WeialS4WST6Yy-Qv8Reo";
 
@@ -42,12 +51,12 @@ const LeaderboardPage = () => {
   const [error, setError] = useState(null);
   const [weeklyWins, setWeeklyWins] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
-  const [picks, setPicks] = useState([]);
+  const [picks, setPicks] = useState({});
 
-  const fetchWeeklyWinData = useCallback(async () => {
-    const range = weekRanges[selectedWeek];
+  const fetchWeeklyWinData = useCallback(async (week) => {
+    const range = weekRanges[week];
     console.log(
-      `Fetching weekly win data for week ${selectedWeek} with range ${range}`
+      `Fetching weekly win data for week ${week} with range ${range}`
     );
     try {
       const response = await fetch(
@@ -56,46 +65,63 @@ const LeaderboardPage = () => {
       const data = await response.json();
       if (data.values) {
         const wins = data.values.slice(1).map((win) => win[0]);
-        setWeeklyWins(wins);
-        console.log(`Weekly wins for week ${selectedWeek}:`, wins);
+        return wins;
       } else {
-        setWeeklyWins([]);
+        return [];
       }
     } catch (error) {
       console.error("Error fetching weekly win data:", error);
+      return [];
     }
-  }, [selectedWeek]);
+  }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchLeaderboardData = useCallback(
+    async (week) => {
+      const cachedData = sessionStorage.getItem(`leaderboardData_${week}`);
+      if (cachedData) {
+        const data = JSON.parse(cachedData);
+        setLeaderboard(data.leaderboard);
+        setWeeklyWins(data.weeklyWins);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        await fetchLeaderboardData();
-        await fetchWeeklyWinData();
-        setIsLoading(false);
-      } catch (err) {
+        const response = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/nfl-totals!A1:B1000?key=${apiKey}`
+        );
+        const data = await response.json();
+        if (data.values) {
+          const leaderboardData = data.values.slice(1); // Exclude header row
+          const weeklyWinsData = await fetchWeeklyWinData(week);
+
+          setLeaderboard(leaderboardData);
+          setWeeklyWins(weeklyWinsData);
+
+          const fetchedData = {
+            leaderboard: leaderboardData,
+            weeklyWins: weeklyWinsData,
+          };
+
+          sessionStorage.setItem(
+            `leaderboardData_${week}`,
+            JSON.stringify(fetchedData)
+          );
+
+          setIsLoading(false);
+        }
+      } catch (error) {
         setError("Failed to fetch data. Please try again later.");
         setIsLoading(false);
       }
-    };
+    },
+    [fetchWeeklyWinData]
+  );
 
-    fetchData();
-  }, [selectedWeek, fetchWeeklyWinData]);
-
-  const fetchLeaderboardData = async () => {
-    try {
-      const response = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/nfl-totals!A1:B1000?key=${apiKey}`
-      );
-      const data = await response.json();
-      if (data.values) {
-        setLeaderboard(data.values.slice(1)); // Exclude header row
-        console.log("Leaderboard data:", data.values.slice(1));
-      }
-    } catch (error) {
-      console.error("Error fetching leaderboard data:", error);
-    }
-  };
+  useEffect(() => {
+    fetchLeaderboardData(selectedWeek);
+  }, [selectedWeek, fetchLeaderboardData]);
 
   const fetchPicksData = async (username) => {
     try {
@@ -133,7 +159,7 @@ const LeaderboardPage = () => {
   const handleWeekChange = (value) => {
     setSelectedWeek(Number(value));
     setExpandedRows([]);
-    setPicks([]);
+    setPicks({});
   };
 
   const renderPicks = (picksData) => {
