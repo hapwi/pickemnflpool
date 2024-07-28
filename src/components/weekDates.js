@@ -3,11 +3,11 @@
 const weekDates = {
   1: {
     availableFrom: new Date("2024-07-20T00:00:00Z"), // Tuesday
-    viewableFrom: new Date("2024-07-29T20:00:00Z"), // Thursday 8:00 PM
+    viewableFrom: new Date("2024-07-21T20:00:00Z"), // Thursday 8:00 PM
   },
   2: {
-    availableFrom: new Date("2024-09-10T00:00:00Z"),
-    viewableFrom: new Date("2024-09-12T20:00:00Z"),
+    availableFrom: new Date("2024-07-22T00:00:00Z"),
+    viewableFrom: new Date("2024-07-29T20:00:00Z"),
   },
   3: {
     availableFrom: new Date("2024-09-17T00:00:00Z"),
