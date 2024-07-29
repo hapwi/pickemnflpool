@@ -64,9 +64,6 @@ const LeaderboardPage = () => {
       return [];
     }
     const range = weekRanges[week];
-    console.log(
-      `Fetching weekly win data for week ${week} with range ${range}`
-    );
     try {
       const response = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`
@@ -84,6 +81,34 @@ const LeaderboardPage = () => {
     }
   }, []);
 
+  const fetchPicksData = async (week) => {
+    if (!isWeekViewable(week)) {
+      return {};
+    }
+    try {
+      const response = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${week}!A1:R50?key=${apiKey}`
+      );
+      const data = await response.json();
+      if (data.values) {
+        const picksData = data.values.slice(1).reduce((acc, row) => {
+          const username = row[0];
+          if (!acc[username]) {
+            acc[username] = [];
+          }
+          acc[username].push(row);
+          return acc;
+        }, {});
+        return picksData;
+      } else {
+        return {};
+      }
+    } catch (error) {
+      console.error("Error fetching picks data:", error);
+      return {};
+    }
+  };
+
   const fetchLeaderboardData = useCallback(
     async (week) => {
       if (!isWeekAvailable(week)) {
@@ -97,6 +122,7 @@ const LeaderboardPage = () => {
         const data = JSON.parse(cachedData);
         setLeaderboard(data.leaderboard);
         setWeeklyWins(data.weeklyWins);
+        setPicks(data.picks);
         setIsLoading(false);
         return;
       }
@@ -110,13 +136,16 @@ const LeaderboardPage = () => {
         if (data.values) {
           const leaderboardData = data.values.slice(1); // Exclude header row
           const weeklyWinsData = await fetchWeeklyWinData(week);
+          const picksData = await fetchPicksData(week);
 
           setLeaderboard(leaderboardData);
           setWeeklyWins(weeklyWinsData);
+          setPicks(picksData);
 
           const fetchedData = {
             leaderboard: leaderboardData,
             weeklyWins: weeklyWinsData,
+            picks: picksData,
           };
 
           sessionStorage.setItem(
@@ -138,29 +167,6 @@ const LeaderboardPage = () => {
     fetchLeaderboardData(selectedWeek);
   }, [selectedWeek, fetchLeaderboardData]);
 
-  const fetchPicksData = async (username) => {
-    if (!isWeekViewable(selectedWeek)) {
-      return;
-    }
-    try {
-      const response = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${selectedWeek}!A1:R50?key=${apiKey}`
-      );
-      const data = await response.json();
-      if (data.values) {
-        const userPicks = data.values
-          .slice(1)
-          .filter((row) => row[0] === username);
-        setPicks((prevPicks) => ({
-          ...prevPicks,
-          [username]: userPicks,
-        }));
-      }
-    } catch (error) {
-      console.error("Error fetching picks data:", error);
-    }
-  };
-
   const handleRowClick = (username) => {
     if (!isWeekViewable(selectedWeek)) {
       // Optionally show a message that the week is not viewable yet
@@ -170,7 +176,6 @@ const LeaderboardPage = () => {
       setExpandedRows(expandedRows.filter((user) => user !== username));
     } else {
       setExpandedRows([...expandedRows, username]);
-      fetchPicksData(username);
     }
   };
 
@@ -291,7 +296,6 @@ const LeaderboardPage = () => {
             >
               {Object.keys(weekDates).map((week) => {
                 const isAvailable = isWeekAvailable(Number(week));
-                console.log(`Week ${week} available:`, isAvailable);
                 return (
                   <option key={week} value={week} disabled={!isAvailable}>
                     Week {week}
