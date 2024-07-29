@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import Modal from "./Modal";
-import SignupModal from "./SignupModal"; // We'll create this component next
+import SignupModal from "./SignupModal";
 
 const LoginComponent = () => {
   const [username, setUsername] = useState("");
@@ -42,55 +42,52 @@ const LoginComponent = () => {
   };
 
   return (
-    <div className="flex items-start justify-center h-screen bg-gray-900 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="w-full max-w-md space-y-8 mt-16">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
+      <div className="w-full max-w-md p-6">
+        <div className="mb-8">
+          <h2 className="text-center text-3xl font-extrabold text-white">
             Sign in to your Pick'em account
           </h2>
         </div>
         <form
-          className="mt-8 space-y-6 bg-gray-800 shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
+          className="bg-gray-800 shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
           onSubmit={handleSubmit}
         >
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="username"
-                spellCheck="false"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                autoComplete="current-password"
-              />
-            </div>
+          <div className="mb-4">
+            <label htmlFor="username" className="sr-only">
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="username"
+              spellCheck="false"
+            />
           </div>
-
+          <div className="mb-6">
+            <label htmlFor="password" className="sr-only">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Password"
+              autoComplete="current-password"
+            />
+          </div>
           <div>
             <button
               type="submit"
@@ -100,7 +97,6 @@ const LoginComponent = () => {
             </button>
           </div>
         </form>
-
         <div className="text-center">
           <button
             onClick={openSignupModal}
