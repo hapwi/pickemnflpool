@@ -78,9 +78,7 @@ const weekDates = {
 export const isWeekAvailable = (weekNumber) => {
   const today = new Date();
   const weekDate = weekDates[weekNumber];
-  console.log(
-    `Today: ${today}, Week ${weekNumber} available from: ${weekDate?.availableFrom}`
-  );
+  
   return weekDate && today >= weekDate.availableFrom;
 };
 

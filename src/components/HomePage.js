@@ -23,7 +23,8 @@ const HomePage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [username, setUsername] = useState("");
-  const [isFirstFetch, setIsFirstFetch] = useState(true); // State to check if it's the first fetch
+  const [isFirstFetch, setIsFirstFetch] = useState(true);
+  const [hasSubmittedPicks, setHasSubmittedPicks] = useState(false);
   const teams = getGamesForWeek(currentWeek);
 
   const fetchUserData = useCallback(async () => {
@@ -31,7 +32,8 @@ const HomePage = () => {
     if (cachedData) {
       const data = JSON.parse(cachedData);
       setUsername(data.username);
-      setIsLoading(false); // Skip showing loading spinner if data is from cache
+      setHasSubmittedPicks(data.hasSubmittedPicks);
+      setIsLoading(false);
       setIsFirstFetch(false);
       return;
     }
@@ -46,12 +48,31 @@ const HomePage = () => {
         throw new Error("Error getting user: " + userError.message);
       if (!user) throw new Error("No user logged in");
 
-      setUsername(user.email.split("@")[0]);
+      const username = user.email.split("@")[0];
+      setUsername(username);
+
+      // Check if the user has already submitted picks for the current week
+      const { data: userPicks, error: picksError } = await supabase
+        .from("user_picks")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("week", currentWeek)
+        .single();
+
+      if (picksError && picksError.code !== "PGRST116") {
+        // PGRST116 is the error code for no rows returned
+        throw new Error("Error fetching user picks: " + picksError.message);
+      }
+
+      const hasSubmitted = !!userPicks;
+      setHasSubmittedPicks(hasSubmitted);
+
       setIsLoading(false);
       setIsFirstFetch(false);
 
       const fetchedData = {
-        username: user.email.split("@")[0],
+        username: username,
+        hasSubmittedPicks: hasSubmitted,
       };
       sessionStorage.setItem("homePageData", JSON.stringify(fetchedData));
     } catch (error) {
@@ -89,15 +110,6 @@ const HomePage = () => {
         throw new Error("Unable to determine username");
       }
 
-      const { data: existingPicks, error: fetchError } = await supabase
-        .from("user_picks")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("week", week);
-
-      if (fetchError)
-        throw new Error("Error fetching existing picks: " + fetchError.message);
-
       const upsertData = {
         user_id: user.id,
         username: username,
@@ -107,31 +119,28 @@ const HomePage = () => {
 
       console.log("Data to be upserted:", upsertData);
 
-      if (existingPicks && existingPicks.length > 0) {
-        const { data, error: updateError } = await supabase
-          .from("user_picks")
-          .update(upsertData)
-          .eq("user_id", user.id)
-          .eq("week", week);
+      // Use upsert operation
+      const { data, error } = await supabase
+        .from("user_picks")
+        .upsert(upsertData, {
+          onConflict: "user_id,week",
+          returning: "minimal", // or 'representation' if you want to return the row
+        });
 
-        if (updateError)
-          throw new Error("Error updating picks: " + updateError.message);
-        console.log("Update result:", data);
-      } else {
-        const { data, error: insertError } = await supabase
-          .from("user_picks")
-          .insert(upsertData);
-
-        if (insertError)
-          throw new Error("Error inserting picks: " + insertError.message);
-        console.log("Insert result:", data);
+      if (error) {
+        throw new Error(`Error upserting picks: ${error.message}`);
       }
 
+      console.log("Upsert result:", data);
       return true;
     } catch (error) {
       console.error("Error in sendPicksToSupabase:", error.message);
       throw error;
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   const handleSubmit = async (e) => {
@@ -141,11 +150,19 @@ const HomePage = () => {
     if (Object.keys(selectedPicks).length === teams.length) {
       try {
         await sendPicksToSupabase(selectedPicks, currentWeek);
+        setHasSubmittedPicks(true);
         setModalContent({
           title: "Picks Submitted Successfully",
           message: `Your picks for Week ${currentWeek} have been recorded. Good luck!`,
           type: "success",
         });
+
+        // Update sessionStorage
+        const cachedData = JSON.parse(
+          sessionStorage.getItem("homePageData") || "{}"
+        );
+        cachedData.hasSubmittedPicks = true;
+        sessionStorage.setItem("homePageData", JSON.stringify(cachedData));
       } catch (error) {
         console.error("Detailed error:", error);
         setModalContent({
@@ -164,12 +181,7 @@ const HomePage = () => {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
   if (isLoading && isFirstFetch) {
-    // Only show spinner if it's the first fetch
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900">
         <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
@@ -186,7 +198,9 @@ const HomePage = () => {
             <div>
               <h1 className="text-2xl font-bold">Week {currentWeek}</h1>
               <p className="text-gray-300">
-                Make your picks for this week's games
+                {hasSubmittedPicks
+                  ? "You have already submitted your picks for this week."
+                  : "Make your picks for this week's games"}
               </p>
             </div>
           </div>
@@ -244,15 +258,17 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
-          >
-            Submit Picks
-            <ChevronRight className="w-5 h-5 ml-2" />
-          </button>
-        </div>
+        {!hasSubmittedPicks && (
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
+            >
+              Submit Picks
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        )}
       </form>
 
       <Modal
