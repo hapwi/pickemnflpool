@@ -56,20 +56,20 @@ const SignupModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full">
-        <div className="flex justify-between items-center p-8 border-b border-gray-800">
-          <h2 className="text-3xl font-bold text-white">Sign Up</h2>
+      <div className="bg-gray-900 rounded-xl shadow-2xl max-w-md w-full">
+        <div className="flex justify-between items-center p-4 border-b border-gray-800">
+          <h2 className="text-2xl font-bold text-white">Sign Up</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            <XCircle size={32} />
+            <XCircle size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {notification && (
             <div
-              className={`p-4 rounded-lg ${
+              className={`p-3 rounded-md text-sm ${
                 notification.type === "success"
                   ? "bg-green-800 text-green-100"
                   : "bg-red-800 text-red-100"
@@ -78,16 +78,16 @@ const SignupModal = ({ isOpen, onClose }) => {
               {notification.message}
             </div>
           )}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label
               htmlFor="email"
-              className="block text-lg font-medium text-gray-300"
+              className="block text-sm font-medium text-gray-300"
             >
               Email
             </label>
-            <div className="relative rounded-lg shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <Mail className="h-4 w-4 text-gray-400" aria-hidden="true" />
               </div>
               <input
                 type="email"
@@ -96,21 +96,21 @@ const SignupModal = ({ isOpen, onClose }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoCapitalize="off"
-                className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
+                className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-9 pr-3 py-2 text-sm"
                 placeholder="your@email.com"
               />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label
               htmlFor="name"
-              className="block text-lg font-medium text-gray-300"
+              className="block text-sm font-medium text-gray-300"
             >
               Name
             </label>
-            <div className="relative rounded-lg shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <User className="h-4 w-4 text-gray-400" aria-hidden="true" />
               </div>
               <input
                 type="text"
@@ -119,21 +119,21 @@ const SignupModal = ({ isOpen, onClose }) => {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoCapitalize="words"
-                className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
+                className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-9 pr-3 py-2 text-sm"
                 placeholder="John Doe"
               />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label
               htmlFor="username"
-              className="block text-lg font-medium text-gray-300"
+              className="block text-sm font-medium text-gray-300"
             >
               Username
             </label>
-            <div className="relative rounded-lg shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <AtSign className="h-4 w-4 text-gray-400" aria-hidden="true" />
               </div>
               <input
                 type="text"
@@ -142,22 +142,22 @@ const SignupModal = ({ isOpen, onClose }) => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoCapitalize="off"
-                className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
+                className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-9 pr-3 py-2 text-sm"
                 placeholder="johndoe123"
               />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label
               htmlFor="venmo"
-              className="block text-lg font-medium text-gray-300"
+              className="block text-sm font-medium text-gray-300"
             >
               Venmo Username
             </label>
-            <div className="relative rounded-lg shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <CreditCard
-                  className="h-5 w-5 text-gray-400"
+                  className="h-4 w-4 text-gray-400"
                   aria-hidden="true"
                 />
               </div>
@@ -168,16 +168,16 @@ const SignupModal = ({ isOpen, onClose }) => {
                 onChange={(e) => setVenmo(e.target.value)}
                 required
                 autoCapitalize="off"
-                className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
+                className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-9 pr-3 py-2 text-sm"
                 placeholder="johndoe"
               />
             </div>
           </div>
-          <div className="pt-4">
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center py-4 px-6 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white transition-colors ${
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors ${
                 isLoading
                   ? "bg-indigo-400 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
