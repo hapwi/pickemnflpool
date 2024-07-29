@@ -197,7 +197,7 @@ const LeaderboardPage = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
         className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
         style={{ willChange: "opacity, transform" }}
       >
@@ -212,7 +212,7 @@ const LeaderboardPage = () => {
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
+                transition={{ duration: 0.15, delay: index * 0.03 }}
                 className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
                   isCorrect ? "border-green-500" : "border-red-500"
                 } border-2 shadow-md`}
@@ -239,7 +239,7 @@ const LeaderboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
           className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
           style={{ willChange: "opacity, transform" }}
         >
@@ -331,7 +331,7 @@ const LeaderboardPage = () => {
                   <motion.tr
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                     className={`transition-colors cursor-pointer ${
                       expandedRows.includes(row[0]) ? "bg-gray-700" : ""
                     }`}
@@ -387,7 +387,7 @@ const LeaderboardPage = () => {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
+                          transition={{ duration: 0.2 }}
                           style={{ willChange: "opacity, transform" }}
                         >
                           <td colSpan="5" className="px-3 py-4 bg-gray-850">
