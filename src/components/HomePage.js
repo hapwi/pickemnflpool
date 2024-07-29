@@ -217,92 +217,85 @@ const HomePage = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {teams.map((game, index) => (
-            <div
-              key={index}
-              className="bg-gray-800 rounded-lg shadow-md overflow-hidden"
-            >
-              <div className="bg-gray-700 border-gray-600 px-4 py-2 border-b">
-                <h2 className="text-lg font-semibold text-gray-200 flex items-center">
-                  Game {index + 1}
-                </h2>
-              </div>
-              <div className="p-4 space-y-4">
-                {[game.away, game.home].map((team, teamIndex) => (
-                  <div
-                    key={teamIndex}
-                    className={`flex items-center justify-between p-3 rounded-md ${
-                      !isEditing && hasSubmittedPicks
-                        ? "cursor-default"
-                        : "cursor-pointer"
-                    } transition-colors ${
-                      selectedPicks[index] ===
-                      (teamIndex === 0 ? "away" : "home")
-                        ? "bg-blue-900 border-2 border-blue-500"
-                        : "bg-gray-700 hover:bg-gray-600"
-                    }`}
-                    onClick={() =>
-                      handlePickClick(index, teamIndex === 0 ? "away" : "home")
-                    }
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-600 text-gray-200 rounded-full flex items-center justify-center font-bold">
-                        {team.abbreviation}
+      {(!hasSubmittedPicks || isEditing) && (
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {teams.map((game, index) => (
+              <div
+                key={index}
+                className="bg-gray-800 rounded-lg shadow-md overflow-hidden"
+              >
+                <div className="bg-gray-700 border-gray-600 px-4 py-2 border-b">
+                  <h2 className="text-lg font-semibold text-gray-200 flex items-center">
+                    Game {index + 1}
+                  </h2>
+                </div>
+                <div className="p-4 space-y-4">
+                  {[game.away, game.home].map((team, teamIndex) => (
+                    <div
+                      key={teamIndex}
+                      className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
+                        selectedPicks[index] ===
+                        (teamIndex === 0 ? "away" : "home")
+                          ? "bg-blue-900 border-2 border-blue-500"
+                          : "bg-gray-700 hover:bg-gray-600"
+                      }`}
+                      onClick={() =>
+                        handlePickClick(
+                          index,
+                          teamIndex === 0 ? "away" : "home"
+                        )
+                      }
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-600 text-gray-200 rounded-full flex items-center justify-center font-bold">
+                          {team.abbreviation}
+                        </div>
+                        <span className="font-medium text-gray-200">
+                          {team.name}
+                        </span>
                       </div>
-                      <span className="font-medium text-gray-200">
-                        {team.name}
-                      </span>
+                      <div className="flex items-center">
+                        <span
+                          className={`font-semibold ${
+                            team.spread > 0 ? "text-red-400" : "text-green-400"
+                          }`}
+                        >
+                          {team.spread > 0 ? "+" : ""}
+                          {team.spread}
+                        </span>
+                        <ChevronRight className="w-5 h-5 ml-2 text-gray-400" />
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <span
-                        className={`font-semibold ${
-                          team.spread > 0 ? "text-red-400" : "text-green-400"
-                        }`}
-                      >
-                        {team.spread > 0 ? "+" : ""}
-                        {team.spread}
-                      </span>
-                      <ChevronRight className="w-5 h-5 ml-2 text-gray-400" />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
+            >
+              {isEditing ? "Update Picks" : "Submit Picks"}
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        </form>
+      )}
+
+      {hasSubmittedPicks && !isEditing && (
         <div className="flex justify-center">
-          {!hasSubmittedPicks && (
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
-            >
-              Submit Picks
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </button>
-          )}
-          {hasSubmittedPicks && !isEditing && (
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex items-center"
-            >
-              Edit Picks
-              <Edit className="w-5 h-5 ml-2" />
-            </button>
-          )}
-          {hasSubmittedPicks && isEditing && (
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
-            >
-              Update Picks
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex items-center"
+          >
+            Edit Picks
+            <Edit className="w-5 h-5 ml-2" />
+          </button>
         </div>
-      </form>
+      )}
 
       <Modal
         isOpen={isModalOpen}
