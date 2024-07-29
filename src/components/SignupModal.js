@@ -95,6 +95,7 @@ const SignupModal = ({ isOpen, onClose }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoCapitalize="off"
                 className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
                 placeholder="your@email.com"
               />
@@ -117,6 +118,7 @@ const SignupModal = ({ isOpen, onClose }) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                autoCapitalize="words"
                 className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
                 placeholder="John Doe"
               />
@@ -139,6 +141,7 @@ const SignupModal = ({ isOpen, onClose }) => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                autoCapitalize="off"
                 className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
                 placeholder="johndoe123"
               />
@@ -164,6 +167,7 @@ const SignupModal = ({ isOpen, onClose }) => {
                 value={venmo}
                 onChange={(e) => setVenmo(e.target.value)}
                 required
+                autoCapitalize="off"
                 className="block w-full rounded-lg bg-gray-800 border-2 border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-4 py-3 text-lg"
                 placeholder="johndoe"
               />
