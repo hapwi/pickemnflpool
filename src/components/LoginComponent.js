@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
-import Modal from "./Modal"; // Import the Modal component
+import Modal from "./Modal";
+import SignupModal from "./SignupModal"; // We'll create this component next
 
 const LoginComponent = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
   const EMAIL_DOMAIN = "@pempool-123-test-1.com";
 
@@ -23,17 +25,25 @@ const LoginComponent = () => {
         title: "Login Error",
         message: error.message,
       });
-      setIsModalOpen(true);
+      setIsLoginModalOpen(true);
     }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const openSignupModal = () => {
+    setIsSignupModalOpen(true);
+  };
+
+  const closeSignupModal = () => {
+    setIsSignupModalOpen(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex items-start justify-center h-screen bg-gray-900 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="w-full max-w-md space-y-8 mt-16">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your Pick'em account
@@ -90,16 +100,27 @@ const LoginComponent = () => {
             </button>
           </div>
         </form>
+
+        <div className="text-center">
+          <button
+            onClick={openSignupModal}
+            className="text-indigo-300 hover:text-indigo-400 font-medium"
+          >
+            Don't have an account? Sign up
+          </button>
+        </div>
       </div>
 
       <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
         title={modalContent.title}
         type="error"
       >
         {modalContent.message}
       </Modal>
+
+      <SignupModal isOpen={isSignupModalOpen} onClose={closeSignupModal} />
     </div>
   );
 };
