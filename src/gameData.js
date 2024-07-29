@@ -1,56 +1,93 @@
-import axios from "axios";
+// gameData.js
 
-export const currentWeek = 3; // Set the current week here
+export const currentWeek = 1; // Set the current week here
 
-export const weeklyGames = {};
-
-const fetchGames = async () => {
-  try {
-    const response = await axios.get(
-      "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
-    );
-    const data = response.data;
-
-    data.events.forEach((event) => {
-      // Check if the event is part of the regular season
-      if (event.season.type === 2) {
-        // Regular season type ID is 2
-        const weekNumber = event.week.number;
-        if (!weeklyGames[weekNumber]) {
-          weeklyGames[weekNumber] = [];
-        }
-
-        const homeTeam = event.competitions[0].competitors.find(
-          (team) => team.homeAway === "home"
-        ).team;
-        const awayTeam = event.competitions[0].competitors.find(
-          (team) => team.homeAway === "away"
-        ).team;
-        const odds = event.odds ? event.odds[0] : null;
-
-        const game = {
-          home: {
-            abbreviation: homeTeam.abbreviation,
-            name: homeTeam.displayName,
-            spread: odds ? odds.homeTeamOdds.spread : null,
-          },
-          away: {
-            abbreviation: awayTeam.abbreviation,
-            name: awayTeam.displayName,
-            spread: odds ? odds.awayTeamOdds.spread : null,
-          },
-          winner: null, // Initially set to null
-        };
-
-        weeklyGames[weekNumber].push(game);
-      }
-    });
-  } catch (error) {
-    console.error("Error fetching the NFL games:", error);
-  }
+export const weeklyGames = {
+  1: [
+    {
+      home: {
+        abbreviation: "KC",
+        name: "Kansas City Chiefs",
+        spread: -3.5,
+      },
+      away: {
+        abbreviation: "DET",
+        name: "Detroit Lions",
+        spread: 3.5,
+      },
+      winner: null,
+    },
+    {
+      home: {
+        abbreviation: "NYJ",
+        name: "New York Jets",
+        spread: -2,
+      },
+      away: {
+        abbreviation: "BUF",
+        name: "Buffalo Bills",
+        spread: 2,
+      },
+      winner: null,
+    },
+  ],
+  2: [
+    {
+      home: {
+        abbreviation: "DAL",
+        name: "Dallas Cowboys",
+        spread: -3,
+      },
+      away: {
+        abbreviation: "NYJ",
+        name: "New York Jets",
+        spread: 3,
+      },
+      winner: null,
+    },
+    {
+      home: {
+        abbreviation: "ARI",
+        name: "Arizona Cardinals",
+        spread: 5.5,
+      },
+      away: {
+        abbreviation: "NYG",
+        name: "New York Giants",
+        spread: -5.5,
+      },
+      winner: null,
+    },
+  ],
+  3: [
+    {
+      home: {
+        abbreviation: "SF",
+        name: "San Francisco 49ers",
+        spread: -10,
+      },
+      away: {
+        abbreviation: "NYG",
+        name: "New York Giants",
+        spread: 10,
+      },
+      winner: null,
+    },
+    {
+      home: {
+        abbreviation: "KC",
+        name: "Kansas City Chiefs",
+        spread: -12.5,
+      },
+      away: {
+        abbreviation: "CHI",
+        name: "Chicago Bears",
+        spread: 12.5,
+      },
+      winner: null,
+    },
+  ],
 };
-
-fetchGames();
 
 export const getGamesForWeek = (week) => {
   return weeklyGames[week] || [];
