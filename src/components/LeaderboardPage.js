@@ -199,6 +199,7 @@ const LeaderboardPage = () => {
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.3 }}
         className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
+        style={{ willChange: "opacity, transform" }}
       >
         <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
           Week {selectedWeek} Picks for {picksData[0][0]}
@@ -215,6 +216,7 @@ const LeaderboardPage = () => {
                 className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
                   isCorrect ? "border-green-500" : "border-red-500"
                 } border-2 shadow-md`}
+                style={{ willChange: "opacity, transform" }}
               >
                 <span className="text-sm sm:text-base font-medium truncate flex-grow text-gray-200">
                   {pick.trim()}
@@ -239,6 +241,7 @@ const LeaderboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
           className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
+          style={{ willChange: "opacity, transform" }}
         >
           <div className="flex justify-between items-center">
             <span className="text-base sm:text-lg font-semibold text-blue-200">
@@ -333,6 +336,7 @@ const LeaderboardPage = () => {
                       expandedRows.includes(row[0]) ? "bg-gray-700" : ""
                     }`}
                     onClick={() => handleRowClick(row[0])}
+                    style={{ willChange: "opacity, transform" }}
                   >
                     <td className="px-3 py-3 whitespace-nowrap text-center">
                       <span className="inline-flex items-center justify-center w-7 h-7 text-sm leading-5 font-semibold rounded-full bg-blue-900 text-blue-200">
@@ -384,6 +388,7 @@ const LeaderboardPage = () => {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
+                          style={{ willChange: "opacity, transform" }}
                         >
                           <td colSpan="5" className="px-3 py-4 bg-gray-850">
                             {renderPicks(picks[row[0]])}
