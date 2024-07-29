@@ -1,6 +1,6 @@
 // gameData.js
 
-export const currentWeek = 1; // Set the current week here
+export const currentWeek = 2; // Set the current week here
 
 export const weeklyGames = {
   1: [
