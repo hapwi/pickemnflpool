@@ -1,6 +1,6 @@
-// gameData.js
+import { getLatestAvailableWeek } from "./components/weekDates";
 
-export const currentWeek = 1; // Set the current week here
+export const currentWeek = getLatestAvailableWeek();
 
 export const weeklyGames = {
   1: [
