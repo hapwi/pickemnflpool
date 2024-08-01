@@ -66,7 +66,7 @@ const StatCard = ({ icon: Icon, title, value }) => (
 );
 
 const StatsGrid = ({ userStats }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6 w-full">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-8 w-full">
     <StatCard
       icon={Award}
       title="Correct Picks"
@@ -279,11 +279,11 @@ const ProfilePage = ({ userName }) => {
           </h1>
         </header>
 
-        <section className="mb-8">
+        <section className="mb-1">
           {userStats && <StatsGrid userStats={userStats} />}
         </section>
 
-        <div className="flex-grow mt-6">
+        <div className="flex-grow">
           <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
             <div className="overflow-hidden">
               <table className="w-full table-auto">
