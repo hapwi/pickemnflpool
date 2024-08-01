@@ -279,7 +279,9 @@ const ProfilePage = ({ userName }) => {
           </h1>
         </header>
 
-        {userStats && <StatsGrid userStats={userStats} />}
+        <section className="mb-8">
+          {userStats && <StatsGrid userStats={userStats} />}
+        </section>
 
         <div className="flex-grow mt-6">
           <div className="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
