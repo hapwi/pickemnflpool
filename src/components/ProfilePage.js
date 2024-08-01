@@ -53,7 +53,7 @@ const StatCard = ({ icon: Icon, title, value }) => (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.3 }}
-    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between h-full"
+    className="bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between h-full w-full"
   >
     <div className="rounded-full p-2 bg-gray-700 flex-shrink-0">
       <Icon size={24} className="text-blue-400" />
@@ -66,7 +66,7 @@ const StatCard = ({ icon: Icon, title, value }) => (
 );
 
 const StatsGrid = ({ userStats }) => (
-  <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6 w-full">
     <StatCard
       icon={Award}
       title="Correct Picks"
