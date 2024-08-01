@@ -24,11 +24,11 @@ export const weekDates = {
     viewableFrom: formatDate("2024-07-29T20:00:00"),
   },
   3: {
-    availableFrom: formatDate("2024-07-30T00:00:00"),
-    viewableFrom: formatDate("2024-07-30T01:56:00"),
+    availableFrom: formatDate("2024-07-20T00:00:00"),
+    viewableFrom: formatDate("2024-08-09T04:20:00"),
   },
   4: {
-    availableFrom: formatDate("2024-09-24T00:00:00"),
+    availableFrom: formatDate("2024-08-01T00:00:00"),
     viewableFrom: formatDate("2024-09-26T20:00:00"),
   },
   5: {

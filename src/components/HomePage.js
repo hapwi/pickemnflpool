@@ -3,6 +3,18 @@ import Modal from "./Modal";
 import { Calendar, ChevronRight, Loader2, Edit } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
+import { isWeekViewable, weekDates } from "./weekDates"; // Import the necessary functions
+
+const isWeekInSubmissionPeriod = (weekNumber) => {
+  const now = new Date();
+  const weekDate = weekDates[weekNumber];
+
+  return (
+    weekDate &&
+    now >= new Date(weekDate.availableFrom) &&
+    now < new Date(weekDate.viewableFrom)
+  );
+};
 
 const HomePage = () => {
   const [selectedPicks, setSelectedPicks] = useState({});
@@ -193,6 +205,23 @@ const HomePage = () => {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900">
         <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  // Check if the current week is viewable or in the submission period
+  const weekIsViewable = isWeekViewable(currentWeek);
+  const weekInSubmissionPeriod = isWeekInSubmissionPeriod(currentWeek);
+
+  if (!weekInSubmissionPeriod && weekIsViewable) {
+    return (
+      <div className="fixed inset-0 flex justify-center items-start bg-gray-900 pt-24 px-4">
+        <div className="bg-gray-700 text-white p-8 rounded-lg shadow-lg text-center max-w-lg w-full mx-auto">
+          <h1 className="text-3xl font-bold mb-4">
+            Preparing matchups for next week
+          </h1>
+          <p className="text-lg">Please check back later.</p>
+        </div>
       </div>
     );
   }
