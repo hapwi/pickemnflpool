@@ -270,7 +270,7 @@ const ProfilePage = ({ userName }) => {
   const reversedPickHistory = [...pickHistory].reverse();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
+    <div className="min-h-screen text-gray-100 p-4 sm:p-6">
       <div className="w-full max-w-4xl mx-auto flex flex-col">
         <header className="text-center mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center justify-center">

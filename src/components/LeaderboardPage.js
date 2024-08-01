@@ -281,7 +281,7 @@ const LeaderboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-4 sm:p-6">
+    <div className="min-h-screen text-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <header className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-4 sm:space-y-0">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center">
