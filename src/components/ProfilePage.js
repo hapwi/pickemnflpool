@@ -66,7 +66,7 @@ const StatCard = ({ icon: Icon, title, value }) => (
 );
 
 const StatsGrid = ({ userStats }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
+  <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
     <StatCard
       icon={Award}
       title="Correct Picks"
