@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import Modal from "./Modal";
 import SignupModal from "./SignupModal";
@@ -10,6 +10,15 @@ const LoginComponent = () => {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
   const EMAIL_DOMAIN = "@pempool-123-test-1.com";
+
+  useEffect(() => {
+    // Make the body non-scrollable
+    document.body.classList.add("overflow-hidden");
+    return () => {
+      // Clean up: remove the class when the component unmounts
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -43,7 +52,7 @@ const LoginComponent = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 overflow-hidden">
-      <div className="w-full max-w-md p-6">
+      <div className="fixed top-16 w-full max-w-md p-6">
         <div className="mb-8">
           <h2 className="text-center text-3xl font-extrabold text-white">
             Sign in to your Pick'em account
