@@ -98,7 +98,7 @@ const SignupModal = ({ isOpen, onClose }) => {
           />
           <InputField
             id="username"
-            label="Username"
+            label="Choose a Username"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
