@@ -29,6 +29,7 @@ const HomePage = () => {
   const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [hasSubmittedPicks, setHasSubmittedPicks] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [tiebreaker, setTiebreaker] = useState(""); // Add state for tiebreaker
   const teams = getGamesForWeek(currentWeek);
 
   const fetchUserData = useCallback(async () => {
@@ -39,6 +40,7 @@ const HomePage = () => {
         setUsername(data.username);
         setHasSubmittedPicks(data.hasSubmittedPicks);
         setSelectedPicks(data.picks || {});
+        setTiebreaker(data.tiebreaker || ""); // Add this line
         setIsLoading(false);
         setIsFirstFetch(false);
         return;
@@ -74,8 +76,10 @@ const HomePage = () => {
       setHasSubmittedPicks(hasSubmitted);
       if (hasSubmitted) {
         setSelectedPicks(userPicks.picks);
+        setTiebreaker(userPicks.tiebreaker || ""); // Add this line
       } else {
         setSelectedPicks({});
+        setTiebreaker(""); // Add this line
       }
 
       setIsLoading(false);
@@ -85,6 +89,7 @@ const HomePage = () => {
         username: username,
         hasSubmittedPicks: hasSubmitted,
         picks: hasSubmitted ? userPicks.picks : {},
+        tiebreaker: hasSubmitted ? userPicks.tiebreaker : "", // Add this line
         week: currentWeek,
       };
       sessionStorage.setItem("homePageData", JSON.stringify(fetchedData));
@@ -100,13 +105,17 @@ const HomePage = () => {
 
   const handlePickClick = (gameIndex, teamType) => {
     if (!isEditing && hasSubmittedPicks) return;
+    const team =
+      teamType === "away" ? teams[gameIndex].away : teams[gameIndex].home;
     setSelectedPicks((prevPicks) => ({
       ...prevPicks,
-      [gameIndex]: teamType,
+      [gameIndex]: `${team.abbreviation} (${team.spread > 0 ? "+" : ""}${
+        team.spread
+      })`,
     }));
   };
 
-  const sendPicksToSupabase = async (picks, week) => {
+  const sendPicksToSupabase = async (picks, week, tiebreaker) => {
     try {
       const {
         data: { user },
@@ -126,6 +135,7 @@ const HomePage = () => {
         username: username,
         week: week,
         picks: picks,
+        tiebreaker: tiebreaker,
       };
 
       const { error } = await supabase.from("user_picks").upsert(upsertData, {
@@ -154,7 +164,7 @@ const HomePage = () => {
 
     if (Object.keys(selectedPicks).length === teams.length) {
       try {
-        await sendPicksToSupabase(selectedPicks, currentWeek);
+        await sendPicksToSupabase(selectedPicks, currentWeek, tiebreaker); // Pass tiebreaker
         setHasSubmittedPicks(true);
         setIsEditing(false);
         setModalContent({
@@ -173,6 +183,7 @@ const HomePage = () => {
         );
         cachedData.hasSubmittedPicks = true;
         cachedData.picks = selectedPicks;
+        cachedData.tiebreaker = tiebreaker; // Add this line
         cachedData.week = currentWeek;
         sessionStorage.setItem("homePageData", JSON.stringify(cachedData));
       } catch (error) {
@@ -265,7 +276,9 @@ const HomePage = () => {
                       key={teamIndex}
                       className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
                         selectedPicks[index] ===
-                        (teamIndex === 0 ? "away" : "home")
+                        `${team.abbreviation} (${team.spread > 0 ? "+" : ""}${
+                          team.spread
+                        })`
                           ? "bg-blue-900 border-2 border-blue-500"
                           : "bg-gray-700 hover:bg-gray-600"
                       }`}
@@ -300,6 +313,21 @@ const HomePage = () => {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="mb-8">
+            <label htmlFor="tiebreaker" className="block text-gray-200 mb-2">
+              Total Score of the Monday Game
+            </label>
+            <input
+              type="number"
+              id="tiebreaker"
+              name="tiebreaker"
+              value={tiebreaker}
+              placeholder="42"
+              onChange={(e) => setTiebreaker(e.target.value)}
+              className="w-full p-3 bg-gray-800 text-gray-200 rounded-md"
+              required
+            />
           </div>
           <div className="flex justify-center">
             <button
