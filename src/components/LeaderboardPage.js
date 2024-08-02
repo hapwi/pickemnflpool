@@ -89,6 +89,18 @@ const LeaderboardPage = () => {
   const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true);
 
+    const cachedData = sessionStorage.getItem(
+      `leaderboardData_week_${selectedWeek}`
+    );
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      setLeaderboard(parsedData.leaderboard);
+      setPicks(parsedData.picks);
+      setWeeklyCorrectPicks(parsedData.weeklyCorrectPicks);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Fetch all user picks across all weeks
       const { data: allUserPicks, error: allUserPicksError } = await supabase
@@ -158,10 +170,14 @@ const LeaderboardPage = () => {
         leaderboard: leaderboardData,
         weeklyWins: weeklyWinsData,
         picks: picksData,
+        weeklyCorrectPicks: userWeeklyCorrectPicks,
       };
 
       console.log(`Fetched Leaderboard Data:`, fetchedData);
-      sessionStorage.setItem(`leaderboardData`, JSON.stringify(fetchedData));
+      sessionStorage.setItem(
+        `leaderboardData_week_${selectedWeek}`,
+        JSON.stringify(fetchedData)
+      );
 
       setIsLoading(false);
     } catch (error) {

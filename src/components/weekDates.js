@@ -29,7 +29,7 @@ export const weekDates = {
   },
   4: {
     availableFrom: formatDate("2024-08-01T00:00:00"),
-    viewableFrom: formatDate("2024-09-01T20:00:00"),
+    viewableFrom: formatDate("2024-08-01T20:00:00"),
   },
   5: {
     availableFrom: formatDate("2024-10-01T00:00:00"),
