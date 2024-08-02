@@ -16,6 +16,7 @@ import weekDates, {
   isWeekViewable,
   getLatestAvailableWeek,
 } from "./weekDates";
+import { supabase } from "../supabaseClient";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -26,55 +27,30 @@ if (!lastVisit || now - lastVisit > THRESHOLD) {
 }
 sessionStorage.setItem("lastVisit", now);
 
-const apiKey = "AIzaSyCTIOtXB0RDa5Y5gubbRn328WIrqHwemrc";
-const spreadsheetId = "1iTNStqnadp4ZyR7MRkSmvX5WeialS4WST6Yy-Qv8Reo";
-
-const weekRanges = {
-  1: "nfl-totals!C1:C1000",
-  2: "nfl-totals!D1:D1000",
-  3: "nfl-totals!E1:E1000",
-  4: "nfl-totals!F1:F1000",
-  5: "nfl-totals!G1:G1000",
-  6: "nfl-totals!H1:H1000",
-  7: "nfl-totals!I1:I1000",
-  8: "nfl-totals!J1:J1000",
-  9: "nfl-totals!K1:K1000",
-  10: "nfl-totals!L1:L1000",
-  11: "nfl-totals!M1:M1000",
-  12: "nfl-totals!N1:N1000",
-  13: "nfl-totals!O1:O1000",
-  14: "nfl-totals!P1:P1000",
-  15: "nfl-totals!Q1:Q1000",
-  16: "nfl-totals!R1:R1000",
-  17: "nfl-totals!S1:S1000",
-  18: "nfl-totals!T1:T1000",
-};
-
 const LeaderboardPage = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(getLatestAvailableWeek());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [weeklyWins, setWeeklyWins] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [picks, setPicks] = useState({});
+  const [weeklyCorrectPicks, setWeeklyCorrectPicks] = useState({});
 
   const fetchWeeklyWinData = useCallback(async (week) => {
     if (!isWeekAvailable(week)) {
       return [];
     }
-    const range = weekRanges[week];
     try {
-      const response = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`
-      );
-      const data = await response.json();
-      if (data.values) {
-        const wins = data.values.slice(1).map((win) => win[0]);
-        return wins;
-      } else {
-        return [];
-      }
+      const { data, error } = await supabase
+        .from("user_picks")
+        .select("username")
+        .eq("week", week)
+        .order("tiebreaker", { ascending: false });
+
+      if (error) throw error;
+
+      console.log(`Weekly Win Data for Week ${week}:`, data);
+      return data.map((row) => row.username);
     } catch (error) {
       console.error("Error fetching weekly win data:", error);
       return [];
@@ -86,86 +62,118 @@ const LeaderboardPage = () => {
       return {};
     }
     try {
-      const response = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${week}!A1:R50?key=${apiKey}`
-      );
-      const data = await response.json();
-      if (data.values) {
-        const picksData = data.values.slice(1).reduce((acc, row) => {
-          const username = row[0];
-          if (!acc[username]) {
-            acc[username] = [];
-          }
-          acc[username].push(row);
-          return acc;
-        }, {});
-        return picksData;
-      } else {
-        return {};
-      }
+      const { data, error } = await supabase
+        .from("user_picks")
+        .select("username, picks, tiebreaker")
+        .eq("week", week);
+
+      if (error) throw error;
+
+      console.log(`Picks Data for Week ${week}:`, data);
+      const picksData = data.reduce((acc, row) => {
+        acc[row.username] = {
+          username: row.username,
+          picks: row.picks,
+          tiebreaker: row.tiebreaker,
+        };
+        return acc;
+      }, {});
+
+      return picksData;
     } catch (error) {
       console.error("Error fetching picks data:", error);
       return {};
     }
   };
 
-  const fetchLeaderboardData = useCallback(
-    async (week) => {
-      if (!isWeekAvailable(week)) {
-        const latestAvailableWeek = getLatestAvailableWeek();
-        setSelectedWeek(latestAvailableWeek);
-        week = latestAvailableWeek;
-      }
+  const fetchLeaderboardData = useCallback(async () => {
+    setIsLoading(true);
 
-      const cachedData = sessionStorage.getItem(`leaderboardData_${week}`);
-      if (cachedData) {
-        const data = JSON.parse(cachedData);
-        setLeaderboard(data.leaderboard);
-        setWeeklyWins(data.weeklyWins);
-        setPicks(data.picks);
-        setIsLoading(false);
-        return;
-      }
+    try {
+      // Fetch all user picks across all weeks
+      const { data: allUserPicks, error: allUserPicksError } = await supabase
+        .from("user_picks")
+        .select("username, week, picks");
 
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/nfl-totals!A1:B1000?key=${apiKey}`
-        );
-        const data = await response.json();
-        if (data.values) {
-          const leaderboardData = data.values.slice(1); // Exclude header row
-          const weeklyWinsData = await fetchWeeklyWinData(week);
-          const picksData = await fetchPicksData(week);
+      if (allUserPicksError) throw allUserPicksError;
 
-          setLeaderboard(leaderboardData);
-          setWeeklyWins(weeklyWinsData);
-          setPicks(picksData);
+      console.log("All User Picks Data:", allUserPicks);
 
-          const fetchedData = {
-            leaderboard: leaderboardData,
-            weeklyWins: weeklyWinsData,
-            picks: picksData,
-          };
+      // Calculate total correct picks and weekly correct picks for each user
+      const userCorrectPicks = {};
+      const userWeeklyCorrectPicks = {};
 
-          sessionStorage.setItem(
-            `leaderboardData_${week}`,
-            JSON.stringify(fetchedData)
-          );
-
-          setIsLoading(false);
+      allUserPicks.forEach(({ username, week, picks }) => {
+        if (!userCorrectPicks[username]) {
+          userCorrectPicks[username] = 0;
         }
-      } catch (error) {
-        setError("Failed to fetch data. Please try again later.");
-        setIsLoading(false);
-      }
-    },
-    [fetchWeeklyWinData]
-  );
+        if (!userWeeklyCorrectPicks[username]) {
+          userWeeklyCorrectPicks[username] = {};
+        }
+
+        const weekWinners = weeklyWinners[week] || [];
+        console.log(`Week ${week} Winners:`, weekWinners);
+
+        let userPicks;
+
+        // Check if picks is already an object
+        if (typeof picks === "object") {
+          userPicks = picks;
+        } else {
+          try {
+            userPicks = JSON.parse(picks);
+          } catch (error) {
+            console.error(
+              `Error parsing picks for user ${username} in week ${week}:`,
+              error,
+              picks
+            );
+            userPicks = {};
+          }
+        }
+
+        console.log(`User ${username} Picks for Week ${week}:`, userPicks);
+
+        userWeeklyCorrectPicks[username][week] = 0;
+        Object.values(userPicks).forEach((pick) => {
+          if (weekWinners.includes(pick)) {
+            userCorrectPicks[username] += 1;
+            userWeeklyCorrectPicks[username][week] += 1;
+          }
+        });
+      });
+
+      const leaderboardData = Object.entries(userCorrectPicks).map(
+        ([username, totalCorrectPicks]) => [username, totalCorrectPicks]
+      );
+
+      const weeklyWinsData = await fetchWeeklyWinData(selectedWeek);
+      const picksData = await fetchPicksData(selectedWeek);
+
+      setLeaderboard(leaderboardData);
+      setPicks(picksData);
+      setWeeklyCorrectPicks(userWeeklyCorrectPicks);
+
+      const fetchedData = {
+        leaderboard: leaderboardData,
+        weeklyWins: weeklyWinsData,
+        picks: picksData,
+      };
+
+      console.log(`Fetched Leaderboard Data:`, fetchedData);
+      sessionStorage.setItem(`leaderboardData`, JSON.stringify(fetchedData));
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+      setError("Failed to fetch data. Please try again later.");
+      setIsLoading(false);
+    }
+  }, [fetchWeeklyWinData, selectedWeek]);
 
   useEffect(() => {
-    fetchLeaderboardData(selectedWeek);
-  }, [selectedWeek, fetchLeaderboardData]);
+    fetchLeaderboardData();
+  }, [fetchLeaderboardData]);
 
   const handleRowClick = (username) => {
     if (!isWeekViewable(selectedWeek)) {
@@ -191,11 +199,17 @@ const LeaderboardPage = () => {
   };
 
   const renderPicks = (picksData) => {
-    if (!picksData || picksData.length === 0) return null;
+    if (!picksData || !picksData.picks) return null;
 
-    const picks = picksData[0].slice(1).filter((pick) => pick.trim() !== "");
-    const total = picks.pop();
+    const picks = Object.entries(picksData.picks);
+    const tiebreaker = picksData.tiebreaker;
     const winners = weeklyWinners[selectedWeek] || [];
+
+    console.log(
+      `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
+      picks
+    );
+    console.log(`Winners for Week ${selectedWeek}:`, winners);
 
     return (
       <motion.div
@@ -207,24 +221,24 @@ const LeaderboardPage = () => {
         style={{ willChange: "opacity, transform" }}
       >
         <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
-          Week {selectedWeek} Picks for {picksData[0][0]}
+          Week {selectedWeek} Picks for {picksData.username}
         </h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-          {picks.map((pick, index) => {
-            const isCorrect = winners.includes(pick.trim());
+          {picks.map(([index, pick], i) => {
+            const isCorrect = winners.includes(pick);
             return (
               <motion.div
-                key={index}
+                key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.15, delay: index * 0.03 }}
+                transition={{ duration: 0.15, delay: i * 0.03 }}
                 className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
                   isCorrect ? "border-green-500" : "border-red-500"
                 } border-2 shadow-md`}
                 style={{ willChange: "opacity, transform" }}
               >
                 <span className="text-sm sm:text-base font-medium truncate flex-grow text-gray-200">
-                  {pick.trim()}
+                  {pick}
                 </span>
                 <div
                   className={`flex-shrink-0 ml-1 sm:ml-2 ${
@@ -250,10 +264,10 @@ const LeaderboardPage = () => {
         >
           <div className="flex justify-between items-center">
             <span className="text-base sm:text-lg font-semibold text-blue-200">
-              Total Score
+              Tiebreaker
             </span>
             <span className="text-xl sm:text-2xl font-bold text-blue-100">
-              {total}
+              {tiebreaker}
             </span>
           </div>
         </motion.div>
@@ -357,10 +371,8 @@ const LeaderboardPage = () => {
                     <td className="px-3 py-3 whitespace-nowrap text-center text-base sm:text-lg font-semibold">
                       {row[1]}
                     </td>
-                    <td className="px-3 py-3 whitespace-nowrap text-center">
-                      <span className="text-base sm:text-lg font-medium">
-                        {weeklyWins[index] || 0}
-                      </span>
+                    <td className="px-3 py-3 whitespace-nowrap text-center text-base sm:text-lg font-semibold">
+                      {weeklyCorrectPicks[row[0]][selectedWeek] || 0}
                     </td>
                     <td className="px-2 py-3 whitespace-nowrap text-center">
                       {isWeekViewable(selectedWeek) ? (

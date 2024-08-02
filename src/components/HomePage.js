@@ -105,9 +105,13 @@ const HomePage = () => {
 
   const handlePickClick = (gameIndex, teamType) => {
     if (!isEditing && hasSubmittedPicks) return;
+    const team =
+      teamType === "away" ? teams[gameIndex].away : teams[gameIndex].home;
     setSelectedPicks((prevPicks) => ({
       ...prevPicks,
-      [gameIndex]: teamType,
+      [gameIndex]: `${team.abbreviation} (${team.spread > 0 ? "+" : ""}${
+        team.spread
+      })`,
     }));
   };
 
@@ -272,7 +276,9 @@ const HomePage = () => {
                       key={teamIndex}
                       className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
                         selectedPicks[index] ===
-                        (teamIndex === 0 ? "away" : "home")
+                        `${team.abbreviation} (${team.spread > 0 ? "+" : ""}${
+                          team.spread
+                        })`
                           ? "bg-blue-900 border-2 border-blue-500"
                           : "bg-gray-700 hover:bg-gray-600"
                       }`}
