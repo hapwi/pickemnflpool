@@ -60,8 +60,11 @@ const SignupModal = ({ isOpen, onClose }) => {
         <div className="flex justify-between items-center p-5 border-b border-gray-800">
           <h2 className="text-2xl font-bold text-white">Sign Up</h2>
           <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            onClick={isLoading ? null : onClose} // Disable close button when loading
+            className={`text-gray-400 hover:text-white transition-colors ${
+              isLoading ? "cursor-not-allowed" : ""
+            }`}
+            disabled={isLoading}
           >
             <XCircle size={24} />
           </button>
@@ -125,13 +128,13 @@ const SignupModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition-colors ${
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition-colors ${
                 isLoading
                   ? "bg-indigo-400 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               }`}
             >
-              {isLoading ? "Signing Up..." : "Sign Up"}
+              {isLoading ? <Spinner /> : "Sign Up"}
             </button>
           </div>
         </form>
@@ -173,6 +176,10 @@ const InputField = ({
       />
     </div>
   </div>
+);
+
+const Spinner = () => (
+  <div className="w-5 h-5 border-4 border-t-4 border-gray-200 border-t-white rounded-full animate-spin"></div>
 );
 
 export default SignupModal;
