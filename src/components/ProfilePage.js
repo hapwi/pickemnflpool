@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
-import { isWeekAvailable, getLatestAvailableWeek } from "./weekDates";
+import { getLatestAvailableWeek } from "./weekDates";
+import { supabase } from "../supabaseClient";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -23,30 +24,6 @@ if (!lastVisit || now - lastVisit > THRESHOLD) {
   sessionStorage.clear();
 }
 sessionStorage.setItem("lastVisit", now);
-
-const apiKey = "AIzaSyCTIOtXB0RDa5Y5gubbRn328WIrqHwemrc";
-const spreadsheetId = "1iTNStqnadp4ZyR7MRkSmvX5WeialS4WST6Yy-Qv8Reo";
-
-const weekRanges = {
-  1: "C",
-  2: "D",
-  3: "E",
-  4: "F",
-  5: "G",
-  6: "H",
-  7: "I",
-  8: "J",
-  9: "K",
-  10: "L",
-  11: "M",
-  12: "N",
-  13: "O",
-  14: "P",
-  15: "Q",
-  16: "R",
-  17: "S",
-  18: "T",
-};
 
 const StatCard = ({ icon: Icon, title, value }) => (
   <motion.div
@@ -101,173 +78,177 @@ const ProfilePage = ({ userName }) => {
 
     setIsLoading(true);
     try {
-      const totalResponse = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/nfl-totals!A1:T1000?key=${apiKey}`
-      );
-      const totalData = await totalResponse.json();
+      // Fetch all user picks from Supabase
+      const { data: allUserPicks, error: userPicksError } = await supabase
+        .from("user_picks")
+        .select("*");
+
+      if (userPicksError) throw userPicksError;
 
       const latestWeek = getLatestAvailableWeek();
-      const availableWeeks = Object.keys(weekRanges).filter((week) =>
-        isWeekAvailable(parseInt(week))
+
+      // Calculate total correct picks for all users
+      const usersTotalCorrectPicks = {};
+      allUserPicks.forEach((pick) => {
+        if (pick.week <= latestWeek) {
+          const weekWinners = weeklyWinners[pick.week] || [];
+          const correctPicks = Object.values(pick.picks).filter((teamPick) =>
+            weekWinners.includes(teamPick)
+          ).length;
+
+          if (!usersTotalCorrectPicks[pick.username]) {
+            usersTotalCorrectPicks[pick.username] = 0;
+          }
+          usersTotalCorrectPicks[pick.username] += correctPicks;
+        }
+      });
+
+      // Sort users by total correct picks and determine rank
+      const sortedUsers = Object.entries(usersTotalCorrectPicks).sort(
+        ([, a], [, b]) => b - a
       );
+      const rank = sortedUsers.findIndex(([user]) => user === userName) + 1;
 
-      const weeklyData = await Promise.all(
-        availableWeeks.map(async (week) => {
-          const response = await fetch(
-            `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/pemw${week}!A1:R50?key=${apiKey}`
-          );
-          return response.json();
-        })
-      );
+      // Calculate user's stats
+      let totalCorrectPicks = 0;
+      let totalPicks = 0;
+      const history = [];
 
-      if (totalData.values) {
-        const userRow = totalData.values.find((row) => row[0] === userName);
-        if (userRow) {
-          const weeklyPicks = userRow
-            .slice(2, latestWeek + 2)
-            .map((val) => parseInt(val) || 0);
-          const totalCorrectPicks = weeklyPicks.reduce(
-            (sum, picks) => sum + picks,
-            0
-          );
-          const rank = totalData.values.findIndex((row) => row[0] === userName);
+      allUserPicks
+        .filter((pick) => pick.username === userName)
+        .forEach((weekData) => {
+          if (weekData.week <= latestWeek) {
+            const weekWinners = weeklyWinners[weekData.week] || [];
+            const picks = Object.values(weekData.picks);
+            const correctPicks = picks.filter((pick) =>
+              weekWinners.includes(pick)
+            ).length;
 
-          const history = availableWeeks.map((week, index) => {
-            const weekData = weeklyData[index].values;
-            const userWeekRow = weekData.find((row) => row[0] === userName);
-            const weekWinners = weeklyWinners[week] || [];
-            const correctPicks = weeklyPicks[index];
+            totalCorrectPicks += correctPicks;
+            totalPicks += picks.length;
 
-            let picks = [];
-            let finalScorePrediction = "";
-            if (userWeekRow) {
-              picks = userWeekRow.slice(1, -1).filter((pick) => pick !== "");
-              finalScorePrediction = userWeekRow[userWeekRow.length - 1];
-            }
-
-            return {
-              week: parseInt(week),
+            history.push({
+              week: weekData.week,
               correctPicks,
               totalPicks: picks.length,
               winRate:
                 picks.length > 0 ? (correctPicks / picks.length) * 100 : 0,
               picks,
               winners: weekWinners,
-              finalScorePrediction,
-            };
-          });
+              finalScorePrediction: weekData.tiebreaker,
+            });
+          }
+        });
 
-          const totalPicks = history.reduce(
-            (sum, week) => sum + week.totalPicks,
-            0
-          );
-          const winPercentage =
-            totalPicks > 0
-              ? ((totalCorrectPicks / totalPicks) * 100).toFixed(2)
-              : "0.00";
+      // Sort the history array by week number in descending order
+      history.sort((a, b) => b.week - a.week);
 
-          const fetchedData = {
-            userStats: {
-              totalCorrectPicks,
-              totalPicks,
-              winPercentage,
-              rank: rank + 1,
-            },
-            pickHistory: history,
-          };
+      const winPercentage =
+        totalPicks > 0
+          ? ((totalCorrectPicks / totalPicks) * 100).toFixed(2)
+          : "0.00";
 
-          sessionStorage.setItem(
-            `profileData_${userName}`,
-            JSON.stringify(fetchedData)
-          );
+      const fetchedData = {
+        userStats: {
+          totalCorrectPicks,
+          totalPicks,
+          winPercentage,
+          rank,
+        },
+        pickHistory: history,
+      };
 
-          setUserStats(fetchedData.userStats);
-          setPickHistory(fetchedData.pickHistory);
-        }
-      }
+      sessionStorage.setItem(
+        `profileData_${userName}`,
+        JSON.stringify(fetchedData)
+      );
+
+      setUserStats(fetchedData.userStats);
+      setPickHistory(fetchedData.pickHistory);
       setIsLoading(false);
     } catch (err) {
+      console.error("Error fetching user data:", err);
       setError("Failed to fetch user data. Please try again later.");
       setIsLoading(false);
     }
   }, [userName]);
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+   useEffect(() => {
+     fetchUserData();
+   }, [fetchUserData]);
 
-  const toggleWeekExpansion = (week) => {
-    setExpandedWeeks((prev) =>
-      prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]
-    );
-  };
+   const toggleWeekExpansion = (week) => {
+     setExpandedWeeks((prev) =>
+       prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]
+     );
+   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
-        <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
-      </div>
-    );
-  }
+   if (isLoading) {
+     return (
+       <div className="flex justify-center items-center h-screen bg-gray-900">
+         <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
+       </div>
+     );
+   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
-        <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-red-300 mb-3">Error</h2>
-          <p className="text-lg text-red-100">{error}</p>
-        </div>
-      </div>
-    );
-  }
+   if (error) {
+     return (
+       <div className="flex justify-center items-center h-screen bg-gray-900">
+         <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
+           <h2 className="text-2xl font-bold text-red-300 mb-3">Error</h2>
+           <p className="text-lg text-red-100">{error}</p>
+         </div>
+       </div>
+     );
+   }
 
-  const renderPicks = (weekData) => {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
-          {weekData.picks.map((pick, index) => {
-            const isCorrect = weekData.winners.includes(pick.trim());
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
-                className={`bg-gray-700 rounded-lg p-2 flex items-center justify-between ${
-                  isCorrect ? "border-green-500" : "border-red-500"
-                } border-2 shadow-md`}
-              >
-                <span className="truncate font-medium text-sm text-gray-200">
-                  {pick.trim()}
-                </span>
-                <div className={isCorrect ? "text-green-500" : "text-red-500"}>
-                  {isCorrect ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-        {weekData.finalScorePrediction && (
-          <div className="mt-4 bg-gray-700 rounded-lg p-3">
-            <span className="font-medium text-sm text-gray-200">
-              Total Prediction: {weekData.finalScorePrediction}
-            </span>
-          </div>
-        )}
-      </motion.div>
-    );
-  };
+   const renderPicks = (weekData) => {
+     return (
+       <motion.div
+         initial={{ opacity: 0, y: -20 }}
+         animate={{ opacity: 1, y: 0 }}
+         exit={{ opacity: 0, y: -20 }}
+         transition={{ duration: 0.3 }}
+       >
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
+           {weekData.picks.map((pick, index) => {
+             const isCorrect = weekData.winners.includes(pick.trim());
+             return (
+               <motion.div
+                 key={index}
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ duration: 0.2, delay: index * 0.05 }}
+                 className={`bg-gray-700 rounded-lg p-2 flex items-center justify-between ${
+                   isCorrect ? "border-green-500" : "border-red-500"
+                 } border-2 shadow-md`}
+               >
+                 <span className="truncate font-medium text-sm text-gray-200">
+                   {pick.trim()}
+                 </span>
+                 <div className={isCorrect ? "text-green-500" : "text-red-500"}>
+                   {isCorrect ? (
+                     <Check className="h-4 w-4" />
+                   ) : (
+                     <X className="h-4 w-4" />
+                   )}
+                 </div>
+               </motion.div>
+             );
+           })}
+         </div>
+         {weekData.finalScorePrediction && (
+           <div className="mt-4 bg-gray-700 rounded-lg p-3">
+             <span className="font-medium text-sm text-gray-200">
+               Total Prediction: {weekData.finalScorePrediction}
+             </span>
+           </div>
+         )}
+       </motion.div>
+     );
+   };
 
-  const reversedPickHistory = [...pickHistory].reverse();
+   const PickHistory = [...pickHistory];
 
   return (
     <div className="min-h-screen text-gray-100 p-4 sm:p-6">
@@ -305,7 +286,7 @@ const ProfilePage = ({ userName }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {reversedPickHistory.map((week, index) => (
+                  {PickHistory.map((week, index) => (
                     <React.Fragment key={week.week}>
                       <motion.tr
                         initial={{ opacity: 0, y: 20 }}
