@@ -16,24 +16,24 @@ const formatDate = (dateString) => {
 
 export const weekDates = {
   1: {
-    availableFrom: formatDate("2024-07-20T00:00:00"), // Tuesday
-    viewableFrom: formatDate("2024-07-21T20:00:00"), // Thursday 8:00 PM
+    availableFrom: formatDate("2024-08-15T00:00:00"), // Tuesday
+    viewableFrom: formatDate("2024-09-05T20:20:00"), // Thursday 8:00 PM
   },
   2: {
-    availableFrom: formatDate("2024-07-22T00:00:00"),
-    viewableFrom: formatDate("2024-07-29T20:00:00"),
+    availableFrom: formatDate("2024-09-10T00:00:00"),
+    viewableFrom: formatDate("2024-09-12T20:15:00"),
   },
   3: {
-    availableFrom: formatDate("2024-07-30T00:00:00"),
-    viewableFrom: formatDate("2024-07-31T04:20:00"),
+    availableFrom: formatDate("2024-09-17T00:00:00"),
+    viewableFrom: formatDate("2024-09-19T20:15:00"),
   },
   4: {
-    availableFrom: formatDate("2024-08-01T00:00:00"),
-    viewableFrom: formatDate("2024-08-02T20:00:00"),
+    availableFrom: formatDate("2024-09-24T00:00:00"),
+    viewableFrom: formatDate("2024-09-26T20:15:00"),
   },
   5: {
     availableFrom: formatDate("2024-10-01T00:00:00"),
-    viewableFrom: formatDate("2024-10-04T20:00:00"),
+    viewableFrom: formatDate("2024-10-03T20:00:00"),
   },
   6: {
     availableFrom: formatDate("2024-10-08T00:00:00"),

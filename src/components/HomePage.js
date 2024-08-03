@@ -314,21 +314,23 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-          <div className="mb-8">
-            <label htmlFor="tiebreaker" className="block text-gray-200 mb-2">
-              Total Score of the Monday Game
-            </label>
-            <input
-              type="number"
-              id="tiebreaker"
-              name="tiebreaker"
-              value={tiebreaker}
-              placeholder="42"
-              onChange={(e) => setTiebreaker(e.target.value)}
-              className="w-full p-3 bg-gray-800 text-gray-200 rounded-md"
-              required
-            />
-          </div>
+          {teams.length > 0 && ( // Check if teams are available before rendering tiebreaker input
+            <div className="mb-8">
+              <label htmlFor="tiebreaker" className="block text-gray-200 mb-2">
+                Total Score of the Monday Game
+              </label>
+              <input
+                type="number"
+                id="tiebreaker"
+                name="tiebreaker"
+                value={tiebreaker}
+                placeholder="42"
+                onChange={(e) => setTiebreaker(e.target.value)}
+                className="w-full p-3 bg-gray-800 text-gray-200 rounded-md"
+                required
+              />
+            </div>
+          )}
           <div className="flex justify-center">
             <button
               type="submit"
