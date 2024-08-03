@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Trophy, User } from "lucide-react";
+import { Send, Trophy, User } from "lucide-react";
 
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const navItems = [
-    { path: "/", icon: Home, label: "Home" },
+    { path: "/", icon: Send, label: "Picks" },
     { path: "/leaderboard", icon: Trophy, label: "Leaderboard" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
