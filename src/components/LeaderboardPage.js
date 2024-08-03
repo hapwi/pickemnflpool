@@ -159,6 +159,9 @@ const LeaderboardPage = () => {
         ([username, totalCorrectPicks]) => [username, totalCorrectPicks]
       );
 
+      // Sort the leaderboard data by total correct picks in descending order
+      leaderboardData.sort((a, b) => b[1] - a[1]);
+
       const weeklyWinsData = await fetchWeeklyWinData(selectedWeek);
       const picksData = await fetchPicksData(selectedWeek);
 
