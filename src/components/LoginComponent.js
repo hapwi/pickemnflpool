@@ -9,6 +9,7 @@ const LoginComponent = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
+  const [isSignupVisible, setIsSignupVisible] = useState(true); // State to control the visibility of the signup link
   const EMAIL_DOMAIN = "@pempool-123-test-1.com";
 
   useEffect(() => {
@@ -18,6 +19,15 @@ const LoginComponent = () => {
       // Clean up: remove the class when the component unmounts
       document.body.classList.remove("overflow-hidden");
     };
+  }, []);
+
+  useEffect(() => {
+    // Check the current date
+    const currentDate = new Date();
+    const cutoffDate = new Date("2024-09-05"); // Target date
+    if (currentDate >= cutoffDate) {
+      setIsSignupVisible(false); // Hide the signup link if the current date is after the cutoff date
+    }
   }, []);
 
   const handleSubmit = async (event) => {
@@ -106,14 +116,16 @@ const LoginComponent = () => {
             </button>
           </div>
         </form>
-        <div className="text-center">
-          <button
-            onClick={openSignupModal}
-            className="text-indigo-300 hover:text-indigo-400 font-medium"
-          >
-            Don't have an account? Sign up
-          </button>
-        </div>
+        {isSignupVisible && (
+          <div className="text-center">
+            <button
+              onClick={openSignupModal}
+              className="text-indigo-300 hover:text-indigo-400 font-medium"
+            >
+              Want to join the pool? Sign up
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal
