@@ -130,17 +130,6 @@ const SignupModal = ({ isOpen, onClose }) => {
             }
           />
           <InputField
-            id="username"
-            label="Choose a Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="johndoe123"
-            icon={
-              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            }
-          />
-          <InputField
             id="userEmail"
             label="Email Address"
             type="email"
@@ -151,6 +140,18 @@ const SignupModal = ({ isOpen, onClose }) => {
               <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
             }
           />
+          <InputField
+            id="username"
+            label="Choose a Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="johndoe123"
+            icon={
+              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+          />
+
           <InputField
             id="password"
             label="Password"
