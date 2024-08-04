@@ -92,7 +92,7 @@ const LoginComponent = () => {
         >
           <div className="mb-4">
             <label htmlFor="identifier" className="sr-only">
-              Email or Username
+              Username
             </label>
             <input
               id="identifier"
@@ -102,7 +102,7 @@ const LoginComponent = () => {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Email or Username"
+              placeholder="Username"
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="username"
