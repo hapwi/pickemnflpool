@@ -32,6 +32,11 @@ const HomePage = () => {
   const [tiebreaker, setTiebreaker] = useState(""); // Add state for tiebreaker
   const teams = getGamesForWeek(currentWeek);
 
+  const clearSessionStorage = () => {
+    sessionStorage.removeItem(`leaderboardData_week_${currentWeek}`);
+    sessionStorage.removeItem(`profileData_${username}`);
+  };
+
   const fetchUserData = useCallback(async () => {
     const cachedData = sessionStorage.getItem("homePageData");
     if (cachedData) {
@@ -177,6 +182,9 @@ const HomePage = () => {
           type: "success",
         });
 
+        // Clear session storage for Leaderboard and Profile pages
+        clearSessionStorage();
+
         // Update sessionStorage
         const cachedData = JSON.parse(
           sessionStorage.getItem("homePageData") || "{}"
@@ -210,6 +218,8 @@ const HomePage = () => {
 
   const handleEdit = () => {
     setIsEditing(true);
+    // Clear session storage for Leaderboard and Profile pages
+    clearSessionStorage();
   };
 
   if (isLoading && isFirstFetch) {
