@@ -16,7 +16,7 @@ const formatDate = (dateString) => {
 
 export const weekDates = {
   1: {
-    availableFrom: formatDate("2024-08-15T00:00:00"), // Tuesday
+    availableFrom: formatDate("2024-08-01T00:00:00"), // Tuesday
     viewableFrom: formatDate("2024-09-05T20:20:00"), // Thursday 8:00 PM
   },
   2: {

@@ -3,7 +3,21 @@ import { getLatestAvailableWeek } from "./components/weekDates";
 export const currentWeek = getLatestAvailableWeek();
 
 export const weeklyGames = {
-  1: [],
+  1: [
+    {
+      home: {
+        abbreviation: "HOU",
+        name: "Houston Texans",
+        spread: -4.0,
+      },
+      away: {
+        abbreviation: "PHI",
+        name: "Philadelphia Eagles",
+        spread: 4.0,
+      },
+      winner: null,
+    },
+  ],
   2: [
     {
       home: {
