@@ -11,10 +11,10 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
 import { getLatestAvailableWeek } from "./weekDates";
 import { supabase } from "../supabaseClient";
+import { getWinnersForWeek, isPickCorrect } from "../gameData";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -91,9 +91,10 @@ const ProfilePage = ({ userName }) => {
       const usersTotalCorrectPicks = {};
       allUserPicks.forEach((pick) => {
         if (pick.week <= latestWeek) {
-          const weekWinners = weeklyWinners[pick.week] || [];
-          const correctPicks = Object.values(pick.picks).filter((teamPick) =>
-            weekWinners.includes(teamPick)
+          const weekResults = getWinnersForWeek(pick.week);
+          const correctPicks = Object.entries(pick.picks).filter(
+            ([gameIndex, teamPick]) =>
+              isPickCorrect(teamPick, weekResults[gameIndex])
           ).length;
 
           if (!usersTotalCorrectPicks[pick.username]) {
@@ -118,10 +119,10 @@ const ProfilePage = ({ userName }) => {
         .filter((pick) => pick.username === userName)
         .forEach((weekData) => {
           if (weekData.week <= latestWeek) {
-            const weekWinners = weeklyWinners[weekData.week] || [];
-            const picks = Object.values(weekData.picks);
-            const correctPicks = picks.filter((pick) =>
-              weekWinners.includes(pick)
+            const weekResults = getWinnersForWeek(weekData.week);
+            const picks = Object.entries(weekData.picks);
+            const correctPicks = picks.filter(([gameIndex, pick]) =>
+              isPickCorrect(pick, weekResults[gameIndex])
             ).length;
 
             totalCorrectPicks += correctPicks;
@@ -133,8 +134,8 @@ const ProfilePage = ({ userName }) => {
               totalPicks: picks.length,
               winRate:
                 picks.length > 0 ? (correctPicks / picks.length) * 100 : 0,
-              picks,
-              winners: weekWinners,
+              picks: weekData.picks,
+              results: weekResults,
               finalScorePrediction: weekData.tiebreaker,
             });
           }
@@ -173,82 +174,104 @@ const ProfilePage = ({ userName }) => {
     }
   }, [userName]);
 
-   useEffect(() => {
-     fetchUserData();
-   }, [fetchUserData]);
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
-   const toggleWeekExpansion = (week) => {
-     setExpandedWeeks((prev) =>
-       prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]
-     );
-   };
+  const toggleWeekExpansion = (week) => {
+    setExpandedWeeks((prev) =>
+      prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]
+    );
+  };
 
-   if (isLoading) {
-     return (
-       <div className="flex justify-center items-center h-screen bg-gray-900">
-         <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
-       </div>
-     );
-   }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-900">
+        <Loader2 className="h-16 w-16 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
-   if (error) {
-     return (
-       <div className="flex justify-center items-center h-screen bg-gray-900">
-         <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
-           <h2 className="text-2xl font-bold text-red-300 mb-3">Error</h2>
-           <p className="text-lg text-red-100">{error}</p>
-         </div>
-       </div>
-     );
-   }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-900">
+        <div className="bg-red-900 bg-opacity-50 border border-red-700 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-red-300 mb-3">Error</h2>
+          <p className="text-lg text-red-100">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
-   const renderPicks = (weekData) => {
-     return (
-       <motion.div
-         initial={{ opacity: 0, y: -20 }}
-         animate={{ opacity: 1, y: 0 }}
-         exit={{ opacity: 0, y: -20 }}
-         transition={{ duration: 0.3 }}
-       >
-         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
-           {weekData.picks.map((pick, index) => {
-             const isCorrect = weekData.winners.includes(pick.trim());
-             return (
-               <motion.div
-                 key={index}
-                 initial={{ opacity: 0, scale: 0.9 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ duration: 0.2, delay: index * 0.05 }}
-                 className={`bg-gray-700 rounded-lg p-2 flex items-center justify-between ${
-                   isCorrect ? "border-green-500" : "border-red-500"
-                 } border-2 shadow-md`}
-               >
-                 <span className="truncate font-medium text-sm text-gray-200">
-                   {pick.trim()}
-                 </span>
-                 <div className={isCorrect ? "text-green-500" : "text-red-500"}>
-                   {isCorrect ? (
-                     <Check className="h-4 w-4" />
-                   ) : (
-                     <X className="h-4 w-4" />
-                   )}
-                 </div>
-               </motion.div>
-             );
-           })}
-         </div>
-         {weekData.finalScorePrediction && (
-           <div className="mt-4 bg-gray-700 rounded-lg p-3">
-             <span className="font-medium text-sm text-gray-200">
-               Total Prediction: {weekData.finalScorePrediction}
-             </span>
-           </div>
-         )}
-       </motion.div>
-     );
-   };
-
-   const PickHistory = [...pickHistory];
+  const renderPicks = (weekData) => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+          {Object.entries(weekData.picks).map(([gameIndex, pick], index) => {
+            const gameResult = weekData.results[gameIndex];
+            const isCorrect = isPickCorrect(pick, gameResult);
+            const isPush = gameResult.winner === "PUSH";
+            const isNull = gameResult.winner === "NULL";
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
+                  isNull
+                    ? "border-gray-500"
+                    : isPush
+                    ? "border-yellow-500"
+                    : isCorrect
+                    ? "border-green-500"
+                    : "border-red-500"
+                } border-2 shadow-md`}
+              >
+                <span className="text-sm sm:text-base font-medium text-center flex-grow text-gray-200">
+                  {pick.trim()}
+                </span>
+                <div className="w-10 flex-shrink-0 flex justify-center items-center">
+                  {isPush ? (
+                    <span className="text-xs text-yellow-500">PUSH</span>
+                  ) : isNull ? (
+                    <span className="text-xs"></span>
+                  ) : isCorrect ? (
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                  ) : (
+                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+        {weekData.finalScorePrediction && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-base sm:text-lg font-semibold text-blue-200">
+                Total Prediction
+              </span>
+              <span className="text-xl sm:text-2xl font-bold text-blue-100">
+                {weekData.finalScorePrediction}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
+    );
+  };
+  const PickHistory = [...pickHistory];
 
   return (
     <div className="min-h-screen text-gray-100 p-4 sm:p-6">
