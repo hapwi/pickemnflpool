@@ -7,6 +7,7 @@ const SignupModal = ({ isOpen, onClose }) => {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [venmo, setVenmo] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
@@ -41,6 +42,7 @@ const SignupModal = ({ isOpen, onClose }) => {
             name,
             username,
             venmo,
+            email: userEmail,
           })
           .select();
 
@@ -63,6 +65,7 @@ const SignupModal = ({ isOpen, onClose }) => {
         setName("");
         setUsername("");
         setVenmo("");
+        setUserEmail("");
       }
     } catch (error) {
       console.error("Signup process failed:", error);
@@ -133,6 +136,17 @@ const SignupModal = ({ isOpen, onClose }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="johndoe123"
+            icon={
+              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+          />
+          <InputField
+            id="userEmail"
+            label="Email Address"
+            type="email"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            placeholder="johndoe@example.com"
             icon={
               <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
             }
