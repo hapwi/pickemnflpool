@@ -9,7 +9,6 @@ import {
   X,
   Lock,
 } from "lucide-react";
-import { weeklyWinners } from "./weeklyWinners";
 import { motion, AnimatePresence } from "framer-motion";
 import weekDates, {
   isWeekAvailable,
@@ -17,6 +16,7 @@ import weekDates, {
   getLatestAvailableWeek,
 } from "./weekDates";
 import { supabase } from "../supabaseClient";
+import { getWinnersForWeek, isPickCorrect } from "../gameData";
 
 // Clear sessionStorage on initial load if a timestamp is older than a threshold
 const THRESHOLD = 1000; // 1 second
@@ -57,7 +57,7 @@ const LeaderboardPage = () => {
     }
   }, []);
 
-  const fetchPicksData = async (week) => {
+  const fetchPicksData = useCallback(async (week) => {
     if (!isWeekViewable(week)) {
       return {};
     }
@@ -84,7 +84,7 @@ const LeaderboardPage = () => {
       console.error("Error fetching picks data:", error);
       return {};
     }
-  };
+  }, []);
 
   const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true);
@@ -123,8 +123,8 @@ const LeaderboardPage = () => {
           userWeeklyCorrectPicks[username] = {};
         }
 
-        const weekWinners = weeklyWinners[week] || [];
-        console.log(`Week ${week} Winners:`, weekWinners);
+        const weekResults = getWinnersForWeek(week);
+        console.log(`Week ${week} Results:`, weekResults);
 
         let userPicks;
 
@@ -147,8 +147,9 @@ const LeaderboardPage = () => {
         console.log(`User ${username} Picks for Week ${week}:`, userPicks);
 
         userWeeklyCorrectPicks[username][week] = 0;
-        Object.values(userPicks).forEach((pick) => {
-          if (weekWinners.includes(pick)) {
+        Object.entries(userPicks).forEach(([gameIndex, pick]) => {
+          const gameResult = weekResults[gameIndex];
+          if (isPickCorrect(pick, gameResult)) {
             userCorrectPicks[username] += 1;
             userWeeklyCorrectPicks[username][week] += 1;
           }
@@ -188,7 +189,7 @@ const LeaderboardPage = () => {
       setError("Failed to fetch data. Please try again later.");
       setIsLoading(false);
     }
-  }, [fetchWeeklyWinData, selectedWeek]);
+  }, [fetchWeeklyWinData, fetchPicksData, selectedWeek]);
 
   useEffect(() => {
     fetchLeaderboardData();
@@ -222,13 +223,13 @@ const LeaderboardPage = () => {
 
     const picks = Object.entries(picksData.picks);
     const tiebreaker = picksData.tiebreaker;
-    const winners = weeklyWinners[selectedWeek] || [];
+    const weekResults = getWinnersForWeek(selectedWeek);
 
     console.log(
       `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
       picks
     );
-    console.log(`Winners for Week ${selectedWeek}:`, winners);
+    console.log(`Results for Week ${selectedWeek}:`, weekResults);
 
     return (
       <motion.div
@@ -244,30 +245,39 @@ const LeaderboardPage = () => {
         </h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
           {picks.map(([index, pick], i) => {
-            const isCorrect = winners.includes(pick);
+            const gameResult = weekResults[index];
+            const isCorrect = isPickCorrect(pick, gameResult);
+            const isPush = gameResult.winner === "PUSH";
+            const isNull = gameResult.winner === "NULL";
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.15, delay: i * 0.03 }}
-                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
-                  isCorrect ? "border-green-500" : "border-red-500"
+                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center ${
+                  isNull
+                    ? "border-gray-500"
+                    : isPush
+                    ? "border-yellow-500"
+                    : isCorrect
+                    ? "border-green-500"
+                    : "border-red-500"
                 } border-2 shadow-md`}
                 style={{ willChange: "opacity, transform" }}
               >
-                <span className="text-sm sm:text-base font-medium truncate flex-grow text-gray-200">
+                <span className="text-sm sm:text-base font-medium flex-grow text-gray-200">
                   {pick}
                 </span>
-                <div
-                  className={`flex-shrink-0 ml-1 sm:ml-2 ${
-                    isCorrect ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {isCorrect ? (
-                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                <div className="w-10 flex-shrink-0 flex justify-center items-center">
+                  {isPush ? (
+                    <span className="text-xs text-yellow-500">PUSH</span>
+                  ) : isNull ? (
+                    <span className="text-xs"></span> // Empty span for NULL
+                  ) : isCorrect ? (
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                   ) : (
-                    <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                   )}
                 </div>
               </motion.div>
