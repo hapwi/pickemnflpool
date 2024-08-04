@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { XCircle, Mail, User, AtSign, CreditCard } from "lucide-react";
+import { XCircle, User, AtSign, CreditCard } from "lucide-react";
+import { supabase } from "../supabaseClient"; // Ensure this path is correct
 
 const SignupModal = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [venmo, setVenmo] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
@@ -14,40 +16,64 @@ const SignupModal = ({ isOpen, onClose }) => {
     setNotification(null);
     setIsLoading(true);
 
-    const data = new FormData();
-    data.append("email", email);
-    data.append("name", name);
-    data.append("username", username);
-    data.append("venmo", venmo);
-
     try {
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbwy5nMW2KzUEuJOtfjh7DjfA-lExOvrWGrEa3EY6jO_ScJP7XCLRSdUsUPXF5yKE-Ntnw/exec",
-        {
-          method: "POST",
-          body: data,
-        }
-      );
-
-      const responseJson = await response.json();
-      setIsLoading(false);
-
-      const rowNumber = parseInt(responseJson.row) - 1;
-      setNotification({
-        type: "success",
-        message: `Your submission ID: ${rowNumber}. You will receive your account details shortly.`,
+      const email = `${username}@pempool-123-test-1.com`;
+      // Step 1: Sign up the user
+      console.log("Attempting to sign up user...");
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
-      // Clear form
-      setEmail("");
-      setName("");
-      setUsername("");
-      setVenmo("");
+      if (error) {
+        console.error("Error during sign up:", error);
+        throw error;
+      }
+
+      console.log("User signed up successfully:", data.user);
+
+      // Step 2: Create a profile
+      if (data.user) {
+        console.log("Attempting to create user profile...");
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .upsert({
+            id: data.user.id,
+            name,
+            username,
+            venmo,
+            email: userEmail,
+            password, // Add the password here
+          })
+          .select();
+
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          throw profileError;
+        }
+
+        console.log("Profile created successfully:", profileData);
+
+        setIsLoading(false);
+        setNotification({
+          type: "success",
+          message:
+            "Your account has been created. Please check your email for further instructions.",
+        });
+
+        // Clear form
+        setPassword("");
+        setName("");
+        setUsername("");
+        setVenmo("");
+        setUserEmail("");
+      }
     } catch (error) {
+      console.error("Signup process failed:", error);
       setIsLoading(false);
       setNotification({
         type: "error",
-        message: "Something went wrong. Please try again later.",
+        message: `Error: ${error.message}. Please check the console for more details.`,
       });
     }
   };
@@ -60,7 +86,7 @@ const SignupModal = ({ isOpen, onClose }) => {
         <div className="flex justify-between items-center p-5 border-b border-gray-800">
           <h2 className="text-2xl font-bold text-white">Sign Up</h2>
           <button
-            onClick={isLoading ? null : onClose} // Disable close button when loading
+            onClick={isLoading ? null : onClose}
             className={`text-gray-400 hover:text-white transition-colors ${
               isLoading ? "cursor-not-allowed" : ""
             }`}
@@ -82,15 +108,6 @@ const SignupModal = ({ isOpen, onClose }) => {
             </div>
           )}
           <InputField
-            id="email"
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            icon={<Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-          />
-          <InputField
             id="name"
             label="Name"
             type="text"
@@ -98,17 +115,6 @@ const SignupModal = ({ isOpen, onClose }) => {
             onChange={(e) => setName(e.target.value)}
             placeholder="John Doe"
             icon={<User className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-          />
-          <InputField
-            id="username"
-            label="Choose a Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="johndoe123"
-            icon={
-              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            }
           />
           <InputField
             id="venmo"
@@ -123,6 +129,38 @@ const SignupModal = ({ isOpen, onClose }) => {
                 aria-hidden="true"
               />
             }
+          />
+          <InputField
+            id="userEmail"
+            label="Email Address"
+            type="email"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            placeholder="johndoe@example.com"
+            icon={
+              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+          />
+          <InputField
+            id="username"
+            label="Choose a Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="johndoe123"
+            icon={
+              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+          />
+
+          <InputField
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            icon={<User className="h-5 w-5 text-gray-400" aria-hidden="true" />}
           />
           <div className="pt-4">
             <button
@@ -166,11 +204,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         required
-        autoCapitalize={
-          type === "email" || id === "username" || id === "venmo"
-            ? "off"
-            : "words"
-        }
+        autoCapitalize={id === "username" || id === "venmo" ? "off" : "words"}
         className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-3 py-2.5 text-base"
         placeholder={placeholder}
       />

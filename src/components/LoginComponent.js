@@ -4,41 +4,59 @@ import Modal from "./Modal";
 import SignupModal from "./SignupModal";
 
 const LoginComponent = () => {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState(""); // This will be either username or email
   const [password, setPassword] = useState("");
+  const [loggedInUsername, setLoggedInUsername] = useState("");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", message: "" });
-  const [isSignupVisible, setIsSignupVisible] = useState(true); // State to control the visibility of the signup link
-  const EMAIL_DOMAIN = "@pempool-123-test-1.com";
+  const [isSignupVisible, setIsSignupVisible] = useState(true);
 
   useEffect(() => {
-    // Make the body non-scrollable
     document.body.classList.add("overflow-hidden");
     return () => {
-      // Clean up: remove the class when the component unmounts
       document.body.classList.remove("overflow-hidden");
     };
   }, []);
 
   useEffect(() => {
-    // Check the current date
     const currentDate = new Date();
-    const cutoffDate = new Date("2024-09-05"); // Target date
+    const cutoffDate = new Date("2024-09-05");
     if (currentDate >= cutoffDate) {
-      setIsSignupVisible(false); // Hide the signup link if the current date is after the cutoff date
+      setIsSignupVisible(false);
     }
   }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const email = username + EMAIL_DOMAIN;
-      const { error } = await supabase.auth.signInWithPassword({
+      let email = identifier;
+      // Check if identifier is not an email, treat it as a username
+      if (!identifier.includes("@")) {
+        email = `${identifier}@pempool-123-test-1.com`;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
       if (error) throw error;
+
+      if (data.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        if (profileData && profileData.username) {
+          console.log(`Logged in as: ${profileData.username}`);
+          setLoggedInUsername(profileData.username);
+        }
+      }
     } catch (error) {
       setModalContent({
         title: "Login Error",
@@ -73,18 +91,18 @@ const LoginComponent = () => {
           onSubmit={handleSubmit}
         >
           <div className="mb-4">
-            <label htmlFor="username" className="sr-only">
-              Username
+            <label htmlFor="identifier" className="sr-only">
+              Email or Username
             </label>
             <input
-              id="username"
-              name="username"
+              id="identifier"
+              name="identifier"
               type="text"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Username"
+              placeholder="Email or Username"
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="username"
@@ -138,6 +156,12 @@ const LoginComponent = () => {
       </Modal>
 
       <SignupModal isOpen={isSignupModalOpen} onClose={closeSignupModal} />
+
+      {loggedInUsername && (
+        <div className="text-center text-white">
+          Logged in as: {loggedInUsername}
+        </div>
+      )}
     </div>
   );
 };
