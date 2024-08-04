@@ -43,6 +43,7 @@ const SignupModal = ({ isOpen, onClose }) => {
             username,
             venmo,
             email: userEmail,
+            password, // Add the password here
           })
           .select();
 
