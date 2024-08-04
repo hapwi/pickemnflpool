@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { XCircle, Mail, User, AtSign, CreditCard } from "lucide-react";
+import { XCircle, User, AtSign, CreditCard } from "lucide-react";
 import { supabase } from "../supabaseClient"; // Ensure this path is correct
 
 const SignupModal = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -17,6 +16,7 @@ const SignupModal = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
+      const email = `${username}@pempool-123-test-1.com`;
       // Step 1: Sign up the user
       console.log("Attempting to sign up user...");
       const { data, error } = await supabase.auth.signUp({
@@ -59,7 +59,6 @@ const SignupModal = ({ isOpen, onClose }) => {
         });
 
         // Clear form
-        setEmail("");
         setPassword("");
         setName("");
         setUsername("");
@@ -105,24 +104,6 @@ const SignupModal = ({ isOpen, onClose }) => {
             </div>
           )}
           <InputField
-            id="email"
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            icon={<Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-          />
-          <InputField
-            id="password"
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            icon={<User className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-          />
-          <InputField
             id="name"
             label="Name"
             type="text"
@@ -130,17 +111,6 @@ const SignupModal = ({ isOpen, onClose }) => {
             onChange={(e) => setName(e.target.value)}
             placeholder="John Doe"
             icon={<User className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-          />
-          <InputField
-            id="username"
-            label="Choose a Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="johndoe123"
-            icon={
-              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            }
           />
           <InputField
             id="venmo"
@@ -155,6 +125,26 @@ const SignupModal = ({ isOpen, onClose }) => {
                 aria-hidden="true"
               />
             }
+          />
+          <InputField
+            id="username"
+            label="Choose a Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="johndoe123"
+            icon={
+              <AtSign className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+          />
+          <InputField
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            icon={<User className="h-5 w-5 text-gray-400" aria-hidden="true" />}
           />
           <div className="pt-4">
             <button
@@ -198,11 +188,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         required
-        autoCapitalize={
-          type === "email" || id === "username" || id === "venmo"
-            ? "off"
-            : "words"
-        }
+        autoCapitalize={id === "username" || id === "venmo" ? "off" : "words"}
         className="block w-full rounded-md bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 pl-10 pr-3 py-2.5 text-base"
         placeholder={placeholder}
       />

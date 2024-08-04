@@ -33,16 +33,7 @@ const LoginComponent = () => {
       let email = identifier;
       // Check if identifier is not an email, treat it as a username
       if (!identifier.includes("@")) {
-        const { data: userData, error: userError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("username", identifier)
-          .single();
-
-        if (userError) throw userError;
-        if (!userData || !userData.email) throw new Error("Username not found");
-
-        email = userData.email;
+        email = `${identifier}@pempool-123-test-1.com`;
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
