@@ -107,7 +107,7 @@ function App() {
   };
 
   if (loading) {
-    return <div>Loading...</div>; // Or a more sophisticated loading component
+    return <div></div>; // Or a more sophisticated loading component
   }
 
   return (
