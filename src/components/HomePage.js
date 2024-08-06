@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Modal from "./Modal";
-import { Calendar, ChevronRight, Loader2, Edit } from "lucide-react";
+import { ChevronRight, Loader2, Edit } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
 import { isWeekViewable, weekDates } from "./weekDates"; // Import the necessary functions
@@ -30,6 +30,8 @@ const HomePage = () => {
   const [hasSubmittedPicks, setHasSubmittedPicks] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [tiebreaker, setTiebreaker] = useState(""); // Add state for tiebreaker
+  const [timeRemaining, setTimeRemaining] = useState(""); // Add state for countdown timer
+  const [progress, setProgress] = useState(0); // Add state for progress bar
   const teams = getGamesForWeek(currentWeek);
 
   const clearSessionStorage = () => {
@@ -107,6 +109,61 @@ const HomePage = () => {
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
+
+  useEffect(() => {
+    const weekDate = weekDates[currentWeek];
+    if (!weekDate) return;
+
+    const calculateTimeRemaining = (viewableFrom) => {
+      const now = new Date();
+      const targetDate = new Date(viewableFrom);
+      const totalSeconds = Math.floor((targetDate - now) / 1000);
+
+      if (totalSeconds <= 0) {
+        return "00:00:00";
+      }
+
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+        2,
+        "0"
+      );
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+      return `${hours}:${minutes}:${seconds}`;
+    };
+
+    const calculateProgress = (availableFrom, viewableFrom) => {
+      const now = new Date();
+      const startDate = new Date(availableFrom);
+      const endDate = new Date(viewableFrom);
+
+      if (now >= endDate) return 100;
+      if (now <= startDate) return 0;
+
+      const totalDuration = endDate - startDate;
+      const elapsed = now - startDate;
+
+      return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+    };
+
+    const updateCountdownAndProgress = () => {
+      const timeLeft = calculateTimeRemaining(weekDate.viewableFrom);
+      setTimeRemaining(timeLeft);
+
+      const progress = calculateProgress(
+        weekDate.availableFrom,
+        weekDate.viewableFrom
+      );
+      setProgress(progress);
+    };
+
+    updateCountdownAndProgress(); // Initial call to set the time immediately
+
+    const intervalId = setInterval(updateCountdownAndProgress, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handlePickClick = (gameIndex, teamType) => {
     if (!isEditing && hasSubmittedPicks) return;
@@ -239,7 +296,7 @@ const HomePage = () => {
       <div className="fixed inset-0 flex justify-center items-start bg-gray-900 pt-24 px-4">
         <div className="bg-gray-700 text-white p-8 rounded-lg shadow-lg text-center max-w-lg w-full mx-auto">
           <h1 className="text-3xl font-bold mb-4">
-            Preparing matchups for next week
+            Preparing matchups for week {currentWeek + 1}
           </h1>
           <p className="text-lg">Please check back later.</p>
         </div>
@@ -249,13 +306,14 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-gray-700 rounded-lg shadow-lg p-6 mb-8 text-white">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg shadow-lg p-6 mb-8 text-white">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
           <div className="flex items-center">
-            <Calendar className="w-8 h-8 mr-4" />
             <div>
-              <h1 className="text-2xl font-bold">Week {currentWeek}</h1>
-              <p className="text-gray-300">
+              <h1 className="text-3xl font-bold text-center md:text-left">
+                Week {currentWeek}
+              </h1>
+              <p className="text-gray-300 text-center md:text-left">
                 {hasSubmittedPicks
                   ? isEditing
                     ? "Edit your picks for this week's games"
@@ -264,6 +322,18 @@ const HomePage = () => {
               </p>
             </div>
           </div>
+          <div className="text-center md:text-right">
+            <h2 className="text-lg font-semibold">Picks Lock In:</h2>
+            <p className="text-2xl font-bold text-yellow-500">
+              {timeRemaining}
+            </p>
+          </div>
+        </div>
+        <div className="relative w-full h-2 bg-gray-600 rounded-full overflow-hidden">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-400 to-yellow-500"
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
       </div>
 
@@ -300,9 +370,10 @@ const HomePage = () => {
                       }
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-600 text-gray-200 rounded-full flex items-center justify-center font-bold">
-                          {team.abbreviation}
-                        </div>
+                        <img
+                          src={`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/scoreboard/${team.abbreviation.toLowerCase()}.png&scale=crop&cquality=100&location=origin&w=40&h=40`}
+                          alt={team.abbreviation}
+                        />
                         <span className="font-medium text-gray-200">
                           {team.name}
                         </span>
