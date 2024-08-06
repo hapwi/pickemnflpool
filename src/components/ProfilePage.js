@@ -55,7 +55,7 @@ const StatsGrid = ({ userStats }) => (
       title="Win %"
       value={`${userStats.winPercentage}%`}
     />
-    <StatCard icon={TrendingUp} title="Ranking" value={`#${userStats.rank}`} />
+    <StatCard icon={TrendingUp} title="Ranking" value={`# ${userStats.rank}`} />
   </div>
 );
 
