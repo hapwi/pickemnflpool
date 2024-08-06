@@ -347,7 +347,7 @@ const HomePage = () => {
               >
                 <div className="bg-gray-700 border-gray-600 px-4 py-2 border-b">
                   <h2 className="text-lg font-semibold text-gray-200 flex items-center">
-                    Game {index + 1}
+                    {game.away.abbreviation} @ {game.home.abbreviation}
                   </h2>
                 </div>
                 <div className="p-4 space-y-4">
