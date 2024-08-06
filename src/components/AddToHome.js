@@ -23,7 +23,7 @@ const AddToHome = ({ isOpen, onClose }) => {
           />
           <h2 className="text-xl font-bold mb-4">Get the App</h2>
           <p className="text-center mb-4">
-            Enjoy quick access to our app by adding it to your home screen.
+            Add our app to your home screen for quick and easy access.
           </p>
           <div className="flex flex-col items-center mb-4">
             <p className="text-center mb-2">
@@ -42,6 +42,10 @@ const AddToHome = ({ isOpen, onClose }) => {
               <strong>Add to Home Screen</strong>.
             </p>
           </div>
+          <p className="text-center mb-4">
+            No download required. The website will function like a standalone
+            app.
+          </p>
           <button
             onClick={handleClose}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-400 transition-colors"
