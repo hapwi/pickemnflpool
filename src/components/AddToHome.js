@@ -1,28 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import IosShareIcon from "@mui/icons-material/IosShare";
 
 const AddToHome = ({ isOpen, onClose }) => {
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    const checkStandalone = () => {
-      const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        window.navigator.standalone ||
-        document.referrer.includes("android-app://") ||
-        (window.navigator.userAgent.includes("CriOS") &&
-          !window.navigator.standalone) ||
-        (window.navigator.userAgent.includes("Safari") &&
-          !window.navigator.standalone &&
-          !window.navigator.userAgent.includes("CriOS") &&
-          window.navigator.userAgent.includes("iPhone"));
-      setIsStandalone(isStandalone);
-    };
-
-    checkStandalone();
-  }, []);
-
-  if (!isOpen || isStandalone) return null;
+  if (!isOpen) return null;
 
   // Prevent page scroll when modal is open
   document.body.style.overflow = "hidden";
@@ -63,7 +43,8 @@ const AddToHome = ({ isOpen, onClose }) => {
             </p>
           </div>
           <p className="text-center mb-4">
-            No download required. The app will function like a standalone app.
+            No download required. The website will function like a standalone
+            app.
           </p>
           <button
             onClick={handleClose}
