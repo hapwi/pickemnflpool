@@ -218,91 +218,93 @@ const LeaderboardPage = () => {
     }
   };
 
-  const renderPicks = (picksData) => {
-    if (!picksData || !picksData.picks) return null;
+ const renderPicks = (picksData) => {
+   if (!picksData || !picksData.picks) return null;
 
-    const picks = Object.entries(picksData.picks);
-    const tiebreaker = picksData.tiebreaker;
-    const weekResults = getWinnersForWeek(selectedWeek);
+   const picks = Object.entries(picksData.picks);
+   const tiebreaker = picksData.tiebreaker;
+   const weekResults = getWinnersForWeek(selectedWeek);
 
-    console.log(
-      `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
-      picks
-    );
-    console.log(`Results for Week ${selectedWeek}:`, weekResults);
+   console.log(
+     `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
+     picks
+   );
+   console.log(`Results for Week ${selectedWeek}:`, weekResults);
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
-        style={{ willChange: "opacity, transform" }}
-      >
-        <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
-          Week {selectedWeek} Picks for {picksData.username}
-        </h3>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-          {picks.map(([index, pick], i) => {
-            const gameResult = weekResults[index];
-            const isCorrect = isPickCorrect(pick, gameResult);
-            const isPush = gameResult.winner === "PUSH";
-            const isNull = gameResult.winner === "NULL";
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.15, delay: i * 0.03 }}
-                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center ${
-                  isNull
-                    ? "border-gray-500"
-                    : isPush
-                    ? "border-yellow-500"
-                    : isCorrect
-                    ? "border-green-500"
-                    : "border-red-500"
-                } border-2 shadow-md`}
-                style={{ willChange: "opacity, transform" }}
-              >
-                <span className="text-sm sm:text-base font-medium flex-grow text-gray-200">
-                  {pick}
-                </span>
-                <div className="w-10 flex-shrink-0 flex justify-center items-center">
-                  {isPush ? (
-                    <span className="text-xs text-yellow-500">PUSH</span>
-                  ) : isNull ? (
-                    <span className="text-xs"></span> // Empty span for NULL
-                  ) : isCorrect ? (
-                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                  ) : (
-                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, delay: 0.1 }}
-          className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
-          style={{ willChange: "opacity, transform" }}
-        >
-          <div className="flex justify-between items-center">
-            <span className="text-base sm:text-lg font-semibold text-blue-200">
-              Tiebreaker
-            </span>
-            <span className="text-xl sm:text-2xl font-bold text-blue-100">
-              {tiebreaker}
-            </span>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
-  };
+   return (
+     <motion.div
+       initial={{ opacity: 0, y: -10 }}
+       animate={{ opacity: 1, y: 0 }}
+       exit={{ opacity: 0, y: -10 }}
+       transition={{ duration: 0.2 }}
+       className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
+       style={{ willChange: "opacity, transform" }}
+     >
+       <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
+         Week {selectedWeek} Picks for {picksData.username}
+       </h3>
+       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+         {picks.map(([index, pick], i) => {
+           const gameResult = weekResults[index];
+           const isCorrect = isPickCorrect(pick, gameResult);
+           const isPush = gameResult.winner === "PUSH";
+           const isNull = gameResult.winner === "NULL";
+           return (
+             <motion.div
+               key={i}
+               initial={{ opacity: 0, scale: 0.9 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ duration: 0.15, delay: i * 0.03 }}
+               className={`bg-gray-700 rounded-lg p-2 sm:p-3 relative ${
+                 isNull
+                   ? "border-gray-500"
+                   : isPush
+                   ? "border-yellow-500"
+                   : isCorrect
+                   ? "border-green-500"
+                   : "border-red-500"
+               } border-2 shadow-md`}
+               style={{ willChange: "opacity, transform" }}
+             >
+               <div className="flex justify-center items-center h-full">
+                 <span className="text-sm sm:text-base font-medium text-center text-gray-200">
+                   {pick}
+                 </span>
+               </div>
+               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                 {isPush ? (
+                   <span className="text-xs text-yellow-500">PUSH</span>
+                 ) : isNull ? (
+                   <span className="text-xs"></span>
+                 ) : isCorrect ? (
+                   <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                 ) : (
+                   <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                 )}
+               </div>
+             </motion.div>
+           );
+         })}
+       </div>
+       <motion.div
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         transition={{ duration: 0.2, delay: 0.1 }}
+         className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
+         style={{ willChange: "opacity, transform" }}
+       >
+         <div className="flex justify-between items-center">
+           <span className="text-base sm:text-lg font-semibold text-blue-200">
+             Tiebreaker
+           </span>
+           <span className="text-xl sm:text-2xl font-bold text-blue-100">
+             {tiebreaker}
+           </span>
+         </div>
+       </motion.div>
+     </motion.div>
+   );
+ };
 
   if (isLoading) {
     return (

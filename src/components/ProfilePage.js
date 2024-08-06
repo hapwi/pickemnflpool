@@ -223,7 +223,7 @@ const ProfilePage = ({ userName }) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: index * 0.05 }}
-                className={`bg-gray-700 rounded-lg p-2 sm:p-3 flex items-center justify-between ${
+                className={`bg-gray-700 rounded-lg p-2 sm:p-3 relative ${
                   isNull
                     ? "border-gray-500"
                     : isPush
@@ -233,10 +233,12 @@ const ProfilePage = ({ userName }) => {
                     : "border-red-500"
                 } border-2 shadow-md`}
               >
-                <span className="text-sm sm:text-base font-medium text-center flex-grow text-gray-200">
-                  {pick.trim()}
-                </span>
-                <div className="w-10 flex-shrink-0 flex justify-center items-center">
+                <div className="flex justify-center items-center h-full">
+                  <span className="text-sm sm:text-base font-medium text-center text-gray-200">
+                    {pick.trim()}
+                  </span>
+                </div>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                   {isPush ? (
                     <span className="text-xs text-yellow-500">PUSH</span>
                   ) : isNull ? (
@@ -271,6 +273,7 @@ const ProfilePage = ({ userName }) => {
       </motion.div>
     );
   };
+
   const PickHistory = [...pickHistory];
 
   return (
