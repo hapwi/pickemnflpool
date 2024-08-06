@@ -39,7 +39,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-gray-800 shadow-md"
+      className="bottom-nav fixed bottom-0 left-0 right-0 bg-gray-800 shadow-md"
       aria-label="Bottom Navigation"
     >
       <Tabs
