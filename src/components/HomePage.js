@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Modal from "./Modal";
-import { ChevronRight, Loader2, Edit } from "lucide-react";
+import { ChevronRight, Loader2, Edit, XCircle } from "lucide-react"; // Add XCircle icon
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
-import { isWeekViewable, weekDates } from "./weekDates"; // Import the necessary functions
+import { isWeekViewable, weekDates } from "./weekDates";
 
 const isWeekInSubmissionPeriod = (weekNumber) => {
   const now = new Date();
@@ -18,6 +18,7 @@ const isWeekInSubmissionPeriod = (weekNumber) => {
 
 const HomePage = () => {
   const [selectedPicks, setSelectedPicks] = useState({});
+  const [originalPicks, setOriginalPicks] = useState({}); // State for original picks
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -29,9 +30,10 @@ const HomePage = () => {
   const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [hasSubmittedPicks, setHasSubmittedPicks] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [tiebreaker, setTiebreaker] = useState(""); // Add state for tiebreaker
-  const [timeRemaining, setTimeRemaining] = useState(""); // Add state for countdown timer
-  const [progress, setProgress] = useState(0); // Add state for progress bar
+  const [tiebreaker, setTiebreaker] = useState("");
+  const [originalTiebreaker, setOriginalTiebreaker] = useState(""); // State for original tiebreaker
+  const [timeRemaining, setTimeRemaining] = useState("");
+  const [progress, setProgress] = useState(0);
   const teams = getGamesForWeek(currentWeek);
 
   const clearSessionStorage = () => {
@@ -47,7 +49,7 @@ const HomePage = () => {
         setUsername(data.username);
         setHasSubmittedPicks(data.hasSubmittedPicks);
         setSelectedPicks(data.picks || {});
-        setTiebreaker(data.tiebreaker || ""); // Add this line
+        setTiebreaker(data.tiebreaker || "");
         setIsLoading(false);
         setIsFirstFetch(false);
         return;
@@ -67,7 +69,6 @@ const HomePage = () => {
       const username = user.email.split("@")[0];
       setUsername(username);
 
-      // Check if the user has already submitted picks for the current week
       const { data: userPicks, error: picksError } = await supabase
         .from("user_picks")
         .select("*")
@@ -83,10 +84,10 @@ const HomePage = () => {
       setHasSubmittedPicks(hasSubmitted);
       if (hasSubmitted) {
         setSelectedPicks(userPicks.picks);
-        setTiebreaker(userPicks.tiebreaker || ""); // Add this line
+        setTiebreaker(userPicks.tiebreaker || "");
       } else {
         setSelectedPicks({});
-        setTiebreaker(""); // Add this line
+        setTiebreaker("");
       }
 
       setIsLoading(false);
@@ -96,7 +97,7 @@ const HomePage = () => {
         username: username,
         hasSubmittedPicks: hasSubmitted,
         picks: hasSubmitted ? userPicks.picks : {},
-        tiebreaker: hasSubmitted ? userPicks.tiebreaker : "", // Add this line
+        tiebreaker: hasSubmitted ? userPicks.tiebreaker : "",
         week: currentWeek,
       };
       sessionStorage.setItem("homePageData", JSON.stringify(fetchedData));
@@ -158,7 +159,7 @@ const HomePage = () => {
       setProgress(progress);
     };
 
-    updateCountdownAndProgress(); // Initial call to set the time immediately
+    updateCountdownAndProgress();
 
     const intervalId = setInterval(updateCountdownAndProgress, 1000);
 
@@ -226,7 +227,7 @@ const HomePage = () => {
 
     if (Object.keys(selectedPicks).length === teams.length) {
       try {
-        await sendPicksToSupabase(selectedPicks, currentWeek, tiebreaker); // Pass tiebreaker
+        await sendPicksToSupabase(selectedPicks, currentWeek, tiebreaker);
         setHasSubmittedPicks(true);
         setIsEditing(false);
         setModalContent({
@@ -239,16 +240,14 @@ const HomePage = () => {
           type: "success",
         });
 
-        // Clear session storage for Leaderboard and Profile pages
         clearSessionStorage();
 
-        // Update sessionStorage
         const cachedData = JSON.parse(
           sessionStorage.getItem("homePageData") || "{}"
         );
         cachedData.hasSubmittedPicks = true;
         cachedData.picks = selectedPicks;
-        cachedData.tiebreaker = tiebreaker; // Add this line
+        cachedData.tiebreaker = tiebreaker;
         cachedData.week = currentWeek;
         sessionStorage.setItem("homePageData", JSON.stringify(cachedData));
       } catch (error) {
@@ -275,8 +274,15 @@ const HomePage = () => {
 
   const handleEdit = () => {
     setIsEditing(true);
-    // Clear session storage for Leaderboard and Profile pages
+    setOriginalPicks(selectedPicks);
+    setOriginalTiebreaker(tiebreaker);
     clearSessionStorage();
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSelectedPicks(originalPicks);
+    setTiebreaker(originalTiebreaker);
   };
 
   if (isLoading && isFirstFetch) {
@@ -287,7 +293,6 @@ const HomePage = () => {
     );
   }
 
-  // Check if the current week is viewable or in the submission period
   const weekIsViewable = isWeekViewable(currentWeek);
   const weekInSubmissionPeriod = isWeekInSubmissionPeriod(currentWeek);
 
@@ -395,7 +400,7 @@ const HomePage = () => {
               </div>
             ))}
           </div>
-          {teams.length > 0 && ( // Check if teams are available before rendering tiebreaker input
+          {teams.length > 0 && (
             <div className="mb-8">
               <label htmlFor="tiebreaker" className="block text-gray-200 mb-2">
                 Total Score of the Monday Game
@@ -412,12 +417,22 @@ const HomePage = () => {
               />
             </div>
           )}
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center"
+              >
+                Cancel
+                <XCircle className="w-5 h-5 ml-2" />
+              </button>
+            )}
             <button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
             >
-              {isEditing ? "Update Picks" : "Submit Picks"}
+              {isEditing ? "Update" : "Submit Picks"}
               <ChevronRight className="w-5 h-5 ml-2" />
             </button>
           </div>
