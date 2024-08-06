@@ -14,6 +14,8 @@ import LeaderboardPage from "./components/LeaderboardPage";
 import ProfilePage from "./components/ProfilePage";
 import ScrollToTop from "./components/ScrollToTop";
 
+const REFRESH_THRESHOLD = 120 * 60 * 1000; // 2 hours in milliseconds
+
 function App() {
   const [session, setSession] = useState(null);
   const [username, setUsername] = useState("");
@@ -21,32 +23,29 @@ function App() {
 
   useEffect(() => {
     const fetchSession = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Error fetching session:", error.message);
-      } else {
-        setSession(session);
-        if (session && session.user) {
-          const fetchedUsername = session.user.email.split("@")[0];
-          console.log("Setting username:", fetchedUsername);
+      try {
+        const { data: sessionData, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setSession(sessionData.session);
+        if (sessionData.session && sessionData.session.user) {
+          const fetchedUsername = sessionData.session.user.email.split("@")[0];
           setUsername(fetchedUsername);
         }
+      } catch (error) {
+        console.error("Error fetching session:", error.message);
+        setSession(null); // Clear session in case of error
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log("Auth state changed. New session:", session);
-        setSession(session);
-        if (session && session.user) {
-          const newUsername = session.user.email.split("@")[0];
-          console.log("Updating username:", newUsername);
+      async (_event, sessionData) => {
+        setSession(sessionData);
+        if (sessionData && sessionData.user) {
+          const newUsername = sessionData.user.email.split("@")[0];
           setUsername(newUsername);
         } else {
           setUsername("");
@@ -58,6 +57,48 @@ function App() {
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const initializeTimes = () => {
+      const startTime = localStorage.getItem("startTime") || Date.now();
+      localStorage.setItem("startTime", startTime);
+      localStorage.setItem("lastVisit", Date.now());
+      console.log("Initial start time:", startTime);
+      console.log("Initial last visit time:", Date.now());
+    };
+
+    initializeTimes();
+
+    const updateLastVisit = () => {
+      localStorage.setItem("lastVisit", Date.now());
+    };
+
+    const checkRefresh = () => {
+      const currentTime = Date.now();
+      const startTime = parseInt(localStorage.getItem("startTime"), 10);
+      const elapsedTime = currentTime - startTime;
+      console.log("Elapsed time:", elapsedTime);
+      if (elapsedTime >= REFRESH_THRESHOLD) {
+        refreshData();
+        localStorage.setItem("startTime", currentTime);
+        console.log("Data refreshed. New start time:", currentTime);
+      }
+      updateLastVisit();
+    };
+
+    checkRefresh(); // Check once on load
+
+    const interval = setInterval(checkRefresh, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const refreshData = () => {
+    // Your data refresh logic here
+    console.log("Data refreshed!");
+    // Refresh the page to ensure all data is up-to-date
+    window.location.reload();
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
