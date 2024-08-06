@@ -376,8 +376,9 @@ const HomePage = () => {
                     >
                       <div className="flex items-center space-x-3">
                         <img
-                          src={`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/scoreboard/${team.abbreviation.toLowerCase()}.png&scale=crop&cquality=100&location=origin&w=40&h=40`}
+                          src={`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/scoreboard/${team.abbreviation.toLowerCase()}.png&scale=crop&cquality=100&location=origin&w=100&h=100`}
                           alt={team.abbreviation}
+                          className="w-10 h-10"
                         />
                         <span className="font-medium text-gray-200">
                           {team.name}
