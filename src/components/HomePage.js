@@ -365,7 +365,7 @@ const HomePage = () => {
                           team.spread
                         })`
                           ? "bg-blue-900 border-2 border-blue-500"
-                          : "bg-gray-700 hover:bg-gray-600"
+                          : "bg-gray-700 sm:hover:bg-gray-600"
                       }`}
                       onClick={() =>
                         handlePickClick(
@@ -393,7 +393,6 @@ const HomePage = () => {
                           {team.spread > 0 ? "+" : ""}
                           {team.spread}
                         </span>
-                        <ChevronRight className="w-5 h-5 ml-2 text-gray-400" />
                       </div>
                     </div>
                   ))}
