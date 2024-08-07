@@ -57,6 +57,9 @@ const BottomNav = () => {
             "&.Mui-selected": {
               color: "primary.main",
             },
+            fontFamily: "'Montserrat', sans-serif", // Apply the desired font
+            fontSize: "14px",
+            textTransform: "capitalize", // Capitalize only the first letter
           },
         }}
       >

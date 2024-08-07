@@ -4,6 +4,7 @@ import { ChevronRight, Loader2, Edit, XCircle } from "lucide-react"; // Add XCir
 import { supabase } from "../supabaseClient";
 import { currentWeek, getGamesForWeek } from "../gameData";
 import { isWeekViewable, weekDates } from "./weekDates";
+import { PicksLoader } from "./PicksLoader";
 
 const isWeekInSubmissionPeriod = (weekNumber) => {
   const now = new Date();
@@ -17,8 +18,9 @@ const isWeekInSubmissionPeriod = (weekNumber) => {
 };
 
 const HomePage = () => {
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedPicks, setSelectedPicks] = useState({});
-  const [originalPicks, setOriginalPicks] = useState({}); // State for original picks
+  const [originalPicks, setOriginalPicks] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -31,7 +33,7 @@ const HomePage = () => {
   const [hasSubmittedPicks, setHasSubmittedPicks] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [tiebreaker, setTiebreaker] = useState("");
-  const [originalTiebreaker, setOriginalTiebreaker] = useState(""); // State for original tiebreaker
+  const [originalTiebreaker, setOriginalTiebreaker] = useState("");
   const [timeRemaining, setTimeRemaining] = useState("");
   const [progress, setProgress] = useState(0);
   const teams = getGamesForWeek(currentWeek);
@@ -226,7 +228,11 @@ const HomePage = () => {
     console.log("Picks submitted:", selectedPicks);
 
     if (Object.keys(selectedPicks).length === teams.length) {
+      setIsUploading(true);
       try {
+        // Simulate a delay for the upload process
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         await sendPicksToSupabase(selectedPicks, currentWeek, tiebreaker);
         setHasSubmittedPicks(true);
         setIsEditing(false);
@@ -261,6 +267,9 @@ const HomePage = () => {
           }. Please try again or contact support if the issue persists.`,
           type: "error",
         });
+      } finally {
+        setIsUploading(false);
+        setIsModalOpen(true);
       }
     } else {
       setModalContent({
@@ -268,8 +277,8 @@ const HomePage = () => {
         message: "Please make selections for all games before submitting.",
         type: "error",
       });
+      setIsModalOpen(true);
     }
-    setIsModalOpen(true);
   };
 
   const handleEdit = () => {
@@ -451,6 +460,8 @@ const HomePage = () => {
           </button>
         </div>
       )}
+
+      {isUploading && <PicksLoader onComplete={() => setIsUploading(false)} />}
 
       <Modal
         isOpen={isModalOpen}
