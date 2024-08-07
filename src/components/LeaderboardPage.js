@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   ChevronDown,
   ChevronUp,
   Trophy,
-  Calendar,
   Loader2,
   Check,
   X,
@@ -18,15 +17,6 @@ import weekDates, {
 import { supabase } from "../supabaseClient";
 import { getWinnersForWeek, isPickCorrect } from "../gameData";
 
-// Clear sessionStorage on initial load if a timestamp is older than a threshold
-const THRESHOLD = 1000; // 1 second
-const now = new Date().getTime();
-const lastVisit = sessionStorage.getItem("lastVisit");
-if (!lastVisit || now - lastVisit > THRESHOLD) {
-  sessionStorage.clear();
-}
-sessionStorage.setItem("lastVisit", now);
-
 const LeaderboardPage = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(getLatestAvailableWeek());
@@ -35,6 +25,8 @@ const LeaderboardPage = () => {
   const [expandedRows, setExpandedRows] = useState([]);
   const [picks, setPicks] = useState({});
   const [weeklyCorrectPicks, setWeeklyCorrectPicks] = useState({});
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const fetchWeeklyWinData = useCallback(async (week) => {
     if (!isWeekAvailable(week)) {
@@ -207,104 +199,117 @@ const LeaderboardPage = () => {
     }
   };
 
-  const handleWeekChange = (value) => {
-    const weekNumber = Number(value);
-    if (isWeekAvailable(weekNumber)) {
-      setSelectedWeek(weekNumber);
-      setExpandedRows([]);
-      setPicks({});
-    } else {
-      console.log(`Week ${weekNumber} is not available yet.`);
+  const handleWeekChange = (week) => {
+    setSelectedWeek(week);
+    setExpandedRows([]);
+    setPicks({});
+    setIsDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
     }
   };
 
- const renderPicks = (picksData) => {
-   if (!picksData || !picksData.picks) return null;
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-   const picks = Object.entries(picksData.picks);
-   const tiebreaker = picksData.tiebreaker;
-   const weekResults = getWinnersForWeek(selectedWeek);
+  const renderPicks = (picksData) => {
+    if (!picksData || !picksData.picks) return null;
 
-   console.log(
-     `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
-     picks
-   );
-   console.log(`Results for Week ${selectedWeek}:`, weekResults);
+    const picks = Object.entries(picksData.picks);
+    const tiebreaker = picksData.tiebreaker;
+    const weekResults = getWinnersForWeek(selectedWeek);
 
-   return (
-     <motion.div
-       initial={{ opacity: 0, y: -10 }}
-       animate={{ opacity: 1, y: 0 }}
-       exit={{ opacity: 0, y: -10 }}
-       transition={{ duration: 0.2 }}
-       className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
-       style={{ willChange: "opacity, transform" }}
-     >
-       <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
-         Week {selectedWeek} Picks for {picksData.username}
-       </h3>
-       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-         {picks.map(([index, pick], i) => {
-           const gameResult = weekResults[index];
-           const isCorrect = isPickCorrect(pick, gameResult);
-           const isPush = gameResult.winner === "PUSH";
-           const isNull = gameResult.winner === "NULL";
-           return (
-             <motion.div
-               key={i}
-               initial={{ opacity: 0, scale: 0.9 }}
-               animate={{ opacity: 1, scale: 1 }}
-               transition={{ duration: 0.15, delay: i * 0.03 }}
-               className={`bg-gray-700 rounded-lg p-2 sm:p-3 relative ${
-                 isNull
-                   ? "border-gray-500"
-                   : isPush
-                   ? "border-yellow-500"
-                   : isCorrect
-                   ? "border-green-500"
-                   : "border-red-500"
-               } border-2 shadow-md`}
-               style={{ willChange: "opacity, transform" }}
-             >
-               <div className="flex justify-center items-center h-full">
-                 <span className="text-sm sm:text-base font-medium text-center text-gray-200">
-                   {pick}
-                 </span>
-               </div>
-               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                 {isPush ? (
-                   <span className="text-xs text-yellow-500">PUSH</span>
-                 ) : isNull ? (
-                   <span className="text-xs"></span>
-                 ) : isCorrect ? (
-                   <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                 ) : (
-                   <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-                 )}
-               </div>
-             </motion.div>
-           );
-         })}
-       </div>
-       <motion.div
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.2, delay: 0.1 }}
-         className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
-         style={{ willChange: "opacity, transform" }}
-       >
-         <div className="flex justify-between items-center">
-           <span className="text-base sm:text-lg font-semibold text-blue-200">
-             Tiebreaker
-           </span>
-           <span className="text-xl sm:text-2xl font-bold text-blue-100">
-             {tiebreaker}
-           </span>
-         </div>
-       </motion.div>
-     </motion.div>
-   );
- };
+    console.log(
+      `Rendering Picks for ${picksData.username} in Week ${selectedWeek}:`,
+      picks
+    );
+    console.log(`Results for Week ${selectedWeek}:`, weekResults);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className="bg-gray-800 p-3 sm:p-4 rounded-lg shadow-lg max-w-4xl mx-auto"
+        style={{ willChange: "opacity, transform" }}
+      >
+        <h3 className="text-lg sm:text-xl font-bold text-blue-300 mb-3 sm:mb-4 text-center">
+          Week {selectedWeek} Picks for {picksData.username}
+        </h3>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+          {picks.map(([index, pick], i) => {
+            const gameResult = weekResults[index];
+            const isCorrect = isPickCorrect(pick, gameResult);
+            const isPush = gameResult.winner === "PUSH";
+            const isNull = gameResult.winner === "NULL";
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.15, delay: i * 0.03 }}
+                className={`bg-gray-700 rounded-lg p-2 sm:p-3 relative ${
+                  isNull
+                    ? "border-gray-500"
+                    : isPush
+                    ? "border-yellow-500"
+                    : isCorrect
+                    ? "border-green-500"
+                    : "border-red-500"
+                } border-2 shadow-md`}
+                style={{ willChange: "opacity, transform" }}
+              >
+                <div className="flex justify-center items-center h-full">
+                  <span className="text-sm sm:text-base font-medium text-center text-gray-200">
+                    {pick}
+                  </span>
+                </div>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  {isPush ? (
+                    <span className="text-xs text-yellow-500">PUSH</span>
+                  ) : isNull ? (
+                    <span className="text-xs"></span>
+                  ) : isCorrect ? (
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                  ) : (
+                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
+          className="mt-4 sm:mt-5 bg-blue-900 rounded-lg p-3 sm:p-4 shadow-lg"
+          style={{ willChange: "opacity, transform" }}
+        >
+          <div className="flex justify-between items-center">
+            <span className="text-base sm:text-lg font-semibold text-blue-200">
+              Tiebreaker
+            </span>
+            <span className="text-xl sm:text-2xl font-bold text-blue-100">
+              {tiebreaker}
+            </span>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -333,25 +338,39 @@ const LeaderboardPage = () => {
             <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-500 mr-3" />
             NFL Pick'em Totals
           </h1>
-          <div className="relative">
-            <select
-              className="appearance-none bg-gray-800 border border-gray-700 text-gray-300 py-2 px-4 pr-8 rounded-lg text-base leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-600 transition-colors duration-200"
-              value={selectedWeek}
-              onChange={(e) => handleWeekChange(e.target.value)}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-md px-3 py-2 bg-gray-700 hover:bg-gray-700 transition-colors"
             >
-              {Object.keys(weekDates).map((week) => {
-                const isAvailable = isWeekAvailable(Number(week));
-                return (
-                  <option key={week} value={week} disabled={!isAvailable}>
-                    Week {week}
-                    {!isAvailable ? " (Not Available)" : ""}
-                  </option>
-                );
-              })}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-              <Calendar className="h-5 w-5" />
-            </div>
+              <span className="font-medium">Week {selectedWeek}</span>
+              <ChevronDown size={20} />
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md overflow-hidden shadow-xl z-20">
+                {Object.keys(weekDates).map((week) => {
+                  const isAvailable = isWeekAvailable(Number(week));
+                  return (
+                    <button
+                      key={week}
+                      onClick={() => handleWeekChange(week)}
+                      className={`block w-full text-left px-4 py-2 text-sm text-gray-200 border-gray-600 border-b hover:bg-gray-500 transition-colors ${
+                        !isAvailable ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={!isAvailable}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Week {week}</span>
+                        {!isAvailable && (
+                          <Lock className="h-4 w-4 text-gray-400 ml-2" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </header>
 

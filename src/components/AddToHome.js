@@ -13,8 +13,8 @@ const AddToHome = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30 backdrop-blur-md">
-      <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-80 text-white">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-30 backdrop-blur-md">
+      <div className="bg-gray-700 p-8 rounded-lg shadow-lg w-80 text-white">
         <div className="flex flex-col items-center">
           <img
             src="/logo192.png"
